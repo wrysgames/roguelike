@@ -1,0 +1,12 @@
+node_modules/
+include/
+out/
+*.tsbuildinfo
+
+.env*
+!.env.example
+
+*.rbxl
+*.rbxlx
+
+flamework.build

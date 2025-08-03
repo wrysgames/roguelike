@@ -1,0 +1,14 @@
+[inputs.assets]
+path = "assets/images/**/*"
+output_path = "src/shared/assets"
+bleed = true
+
+[creator]
+type = "user"
+id = 8838265327
+
+[codegen]
+output_name = "assets"
+typescript = true
+style = "flat"
+strip_extension = true
