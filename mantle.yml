@@ -15,11 +15,11 @@ environments:
 target:
   experience:
     configuration:
-      genre: building
+      genre: rpg
     places:
       start:
         file: game.rbxlx
         configuration:
-          name: Game Template
+          name: Rogue Realms
           description: |-
-            Made with Mantle
+            Coming soon...
