@@ -21,3 +21,8 @@ export function getWeapons(): ReadonlyArray<Readonly<Weapon>> {
 	}
 	return weapons;
 }
+
+export function getWeaponById(id: string): Readonly<Weapon> | undefined {
+	const weapons = getWeapons();
+	return weapons.find((weapon) => weapon.id === id);
+}

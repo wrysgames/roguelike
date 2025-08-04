@@ -48,6 +48,9 @@ export class DataService implements OnStart {
 		} else {
 			profile.EndSession();
 		}
+
+		// Fire data loaded events
+		this.onPlayerDataLoaded.Fire(player, profile.Data);
 	}
 
 	public unloadProfile(player: Player): void {
