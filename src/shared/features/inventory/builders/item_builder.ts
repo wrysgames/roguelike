@@ -1,7 +1,4 @@
-import { BaseItem, BaseUpgrade } from '../types';
-
-type InferStats<T> = T extends BaseItem<infer S, defined> ? S : never;
-type InferTags<T> = T extends BaseItem<defined, infer R> ? R : never;
+import { BaseItem, BaseUpgrade, InferStats, InferTags } from '../types';
 
 export class ItemBuilder<T extends BaseItem<InferStats<T>, InferTags<T>>> {
 	protected item: Partial<T> = {};

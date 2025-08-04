@@ -5,7 +5,7 @@ import { Armor } from '../../types';
 let isInitialized: boolean = false;
 const armors: Readonly<Armor>[] = [];
 
-export function getArmor(): ReadonlyArray<Readonly<Armor>> {
+export function getArmors(): ReadonlyArray<Readonly<Armor>> {
 	if (!isInitialized) {
 		const modules = getDescendantsOfType(script, 'ModuleScript');
 		for (const module of modules) {
@@ -20,4 +20,9 @@ export function getArmor(): ReadonlyArray<Readonly<Armor>> {
 		isInitialized = true;
 	}
 	return armors;
+}
+
+export function getArmorById(id: string): Readonly<Armor> | undefined {
+	const armors = getArmors();
+	return armors.find((armor) => armor.id === id);
 }

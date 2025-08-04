@@ -1,3 +1,6 @@
+export type InferStats<T> = T extends BaseItem<infer S, defined> ? S : never;
+export type InferTags<T> = T extends BaseItem<defined, infer R> ? R : never;
+
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 export interface Item {
