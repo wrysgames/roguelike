@@ -48,9 +48,7 @@ export class DataService implements OnStart {
 			print(`Profile loaded for ${player.DisplayName}!`);
 
 			// Normalize the data before doing anything
-			if (profile.Data.equipped.weapon) {
-				profile.Data.equipped.weapon = normalizeStoredItemData(profile.Data.equipped.weapon);
-			}
+			this.normalizePlayerData(profile.Data);
 
 			// Fire data loaded events
 			this.onPlayerDataLoaded.Fire(player, profile.Data);
@@ -69,5 +67,15 @@ export class DataService implements OnStart {
 	public getEquippedWeapon(player: Player): StoredItemData | undefined {
 		const profile = this.profiles.get(player);
 		return profile?.Data.equipped.weapon;
+	}
+
+	private normalizePlayerData(data: PlayerSaveData): void {
+		if (data.equipped.weapon) {
+			data.equipped.weapon = normalizeStoredItemData(data.equipped.weapon);
+		}
+		if (data.equipped.armor) {
+			data.equipped.armor = normalizeStoredItemData(data.equipped.armor);
+		}
+		data.inventory = data.inventory.map(normalizeStoredItemData);
 	}
 }
