@@ -1,7 +1,11 @@
 import { PlayerSaveData } from '../types/schemas/inventory';
 
 export const profileTemplate: PlayerSaveData = {
-	equipped: {},
+	equipped: {
+		weapon: {
+			id: 'weapon:wooden_sword',
+		},
+	},
 	gold: 0,
 	inventory: [
 		{
