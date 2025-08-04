@@ -44,7 +44,7 @@ export interface ProfileStoreProfile<T extends object = defined> {
 	OnLastSave: ProfileStoreSignal<['Manual' | 'External' | 'Shutdown']>;
 	OnSessionEnd: ProfileStoreSignal<[]>;
 	OnAfterSave: ProfileStoreSignal<[T]>;
-	ProfileStore: ProfileStoreModule<T>;
+	ProfileStore: ProfileStoreModule;
 	Key: string;
 
 	IsActive(): boolean;
@@ -63,7 +63,7 @@ export interface ProfileStoreVersionQuery<T extends object = defined> {
 }
 
 /** Main ProfileStore API */
-export interface ProfileStoreModule<T extends object = defined> {
+export interface ProfileStoreModule {
 	IsClosing: boolean;
 	IsCriticalState: boolean;
 	OnError: ProfileStoreSignal<[string, string, string]>;
@@ -71,7 +71,8 @@ export interface ProfileStoreModule<T extends object = defined> {
 	OnCriticalToggle: ProfileStoreSignal<[boolean]>;
 	DataStoreState: 'NotReady' | 'NoInternet' | 'NoAccess' | 'Access';
 
-	New(storeName: string, template?: T): ProfileStore<T>;
+	new <T extends object>(storeName: string, template?: T): ProfileStore<T>;
+	New<T extends object>(storeName: string, template?: T): ProfileStore<T>;
 	SetConstant(
 		name:
 			| 'AUTO_SAVE_PERIOD'
@@ -89,7 +90,7 @@ export interface ProfileStoreModule<T extends object = defined> {
 }
 
 /** ProfileStore instance */
-export interface ProfileStore<T extends object = defined> extends ProfileStoreModule<T> {
+export interface ProfileStore<T extends object = defined> extends ProfileStoreModule {
 	Mock: ProfileStore<T>;
 
 	StartSessionAsync(
