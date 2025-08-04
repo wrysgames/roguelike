@@ -50,7 +50,7 @@ export class ItemBuilder<T extends BaseItem<InferStats<T>, InferTags<T>>> {
 		}
 	}
 
-	build(): T {
+	build(): Readonly<T> {
 		this.validate();
 		return this.item;
 	}
