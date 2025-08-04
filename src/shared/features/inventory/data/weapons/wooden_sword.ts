@@ -15,7 +15,7 @@ const woodenSword = new WeaponBuilder('wooden_sword', 'Wooden Sword', 'common')
 		description: '+5 base damage',
 	})
 	.withUpgrade({
-		stats: { critRate: 0.1 },
+		stats: { critRate: 0.1, damage: 8 },
 		description: '+10% base damage',
 	})
 	.build();

@@ -10,7 +10,7 @@ export class WeaponService implements OnStart {
 	public onStart(): void {
 		this.dataService.onPlayerDataLoaded.Connect((player, data) => {
 			const weapon = this.getEquippedWeapon(player);
-			print(weapon);
+			if (weapon) print(this.calculateWeaponStats(weapon, 3, 1));
 		});
 	}
 
@@ -28,7 +28,7 @@ export class WeaponService implements OnStart {
 
 		// --- 1. Apply Tier Upgrades ---
 		if (weapon.upgrades) {
-			for (let i = 0; i < tier && i < weapon.upgrades?.size(); i++) {
+			for (let i = 0; i < tier && i < math.min(weapon.upgrades?.size(), weapon.maxTiers); i++) {
 				const upgrade = weapon.upgrades[i];
 				if (!upgrade) continue;
 
@@ -46,7 +46,7 @@ export class WeaponService implements OnStart {
 				const statKey = key[0] as keyof WeaponStats;
 				const baseValue = scaledStats[statKey];
 				if (typeIs(baseValue, 'number')) {
-					const bonusMultiplier = 1 + LEVEL_SCALE * (level - 1);
+					const bonusMultiplier = 1 + LEVEL_SCALE * math.clamp(level - 1, 1, weapon.maxLevel - 1);
 					scaledStats[statKey] = baseValue * bonusMultiplier;
 				}
 			}
