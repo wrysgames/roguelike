@@ -23,7 +23,13 @@ export class WeaponBuilder extends ItemBuilder<Weapon> {
 		return this;
 	}
 
-	validate() {
+	override validate(): asserts this is { item: Weapon } {
 		super.validate();
+		if (!this.item.weaponType) {
+			throw `Missing visualType property`;
+		}
+		if (!this.item.visualType) {
+			throw `Missing visualType property`;
+		}
 	}
 }

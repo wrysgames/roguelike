@@ -33,6 +33,6 @@ export interface WeaponModel extends Model {
 export interface Weapon extends BaseItem<WeaponStats, WeaponTag> {
 	type: 'weapon';
 	weaponType: WeaponArchetype;
-	visualType?: WeaponVisualType;
+	visualType: WeaponVisualType;
 	model?: WeaponModel;
 }
