@@ -1,5 +1,4 @@
 import { WeaponBuilder } from '../../builders/weapon_builder';
-import { Weapon } from '../../types/weapon';
 
 const woodenSword = new WeaponBuilder('wooden_sword', 'Wooden Sword')
 	.withStats({
