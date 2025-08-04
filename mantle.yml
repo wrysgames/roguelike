@@ -16,6 +16,7 @@ target:
   experience:
     configuration:
       genre: rpg
+      enableStudioAccessToApis: true
     places:
       start:
         file: game.rbxlx

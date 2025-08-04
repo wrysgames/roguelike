@@ -2,10 +2,8 @@ import { Weapon } from 'shared/features/inventory/types';
 import { ItemBuilder } from './item_builder';
 
 export class WeaponBuilder extends ItemBuilder<Weapon> {
-	constructor(id: string, name: string) {
-		super(id, name, 'weapon');
-		this.item.tags = [];
-		this.item.upgrades = [];
+	constructor(id: string, name: string, rarity: Weapon['rarity']) {
+		super(id, name, 'weapon', rarity);
 	}
 
 	withWeaponType(weaponType: Weapon['weaponType']): this {
@@ -23,7 +21,13 @@ export class WeaponBuilder extends ItemBuilder<Weapon> {
 		return this;
 	}
 
-	validate() {
+	override validate(): asserts this is { item: Weapon } {
 		super.validate();
+		if (!this.item.weaponType) {
+			throw `Missing visualType property`;
+		}
+		if (!this.item.visualType) {
+			throw `Missing visualType property`;
+		}
 	}
 }
