@@ -28,6 +28,7 @@ export interface BaseItem<TStats extends defined, TTag extends defined> {
 	name: string;
 	tags: TTag[];
 	baseStats: TStats;
+	rarity: Rarity;
 	upgrades?: BaseUpgrade<TStats>[];
 	obtainable?: {
 		drops?: boolean;

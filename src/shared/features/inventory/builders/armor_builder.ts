@@ -2,8 +2,8 @@ import { Armor } from 'shared/features/inventory/types';
 import { ItemBuilder } from './item_builder';
 
 export class ArmorBuilder extends ItemBuilder<Armor> {
-	constructor(id: string, name: string) {
-		super(id, name, 'armor');
+	constructor(id: string, name: string, rarity: Armor['rarity']) {
+		super(id, name, 'armor', rarity);
 	}
 
 	withModel(model: Armor['model']): this {

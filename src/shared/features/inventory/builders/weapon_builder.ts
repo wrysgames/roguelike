@@ -2,8 +2,8 @@ import { Weapon } from 'shared/features/inventory/types';
 import { ItemBuilder } from './item_builder';
 
 export class WeaponBuilder extends ItemBuilder<Weapon> {
-	constructor(id: string, name: string) {
-		super(id, name, 'weapon');
+	constructor(id: string, name: string, rarity: Weapon['rarity']) {
+		super(id, name, 'weapon', rarity);
 	}
 
 	withWeaponType(weaponType: Weapon['weaponType']): this {

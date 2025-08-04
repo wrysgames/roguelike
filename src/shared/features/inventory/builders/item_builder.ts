@@ -6,10 +6,11 @@ type InferTags<T> = T extends BaseItem<defined, infer R> ? R : never;
 export class ItemBuilder<T extends BaseItem<InferStats<T>, InferTags<T>>> {
 	protected item: Partial<T> = {};
 
-	constructor(id: string, name: string, itemType: string) {
+	constructor(id: string, name: string, itemType: string, rarity: T['rarity']) {
 		this.item.id = `${itemType}:${id}`;
 		this.item.name = name;
 		this.item.type = itemType;
+		this.item.rarity = rarity;
 	}
 
 	public obtainableInDrop(): this {
@@ -28,13 +29,14 @@ export class ItemBuilder<T extends BaseItem<InferStats<T>, InferTags<T>>> {
 		return this;
 	}
 
-	withUpgrade(upgrade: BaseUpgrade<InferStats<T>>) {
+	public withUpgrade(upgrade: BaseUpgrade<InferStats<T>>): this {
 		this.item.upgrades ??= [];
 		this.item.upgrades.push(upgrade);
+		return this;
 	}
 
-	validate(): asserts this is { item: T } {
-		const requiredFields = ['id', 'name', 'type', 'baseStats'] as const;
+	public validate(): asserts this is { item: T } {
+		const requiredFields = ['id', 'name', 'type', 'baseStats', 'rarity'] as const;
 
 		for (const field of requiredFields) {
 			if (this.item[field] === undefined) {
