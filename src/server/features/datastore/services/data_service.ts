@@ -1,5 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
 import { Players } from '@rbxts/services';
+import Signal from '@rbxts/signal';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { profileTemplate } from '../constants/player_data_template';
 import { PlayerSaveData } from '../types/schemas/inventory';
@@ -10,6 +11,8 @@ const PLAYER_STORE = new ProfileStore<PlayerSaveData>('test', profileTemplate);
 
 @Service()
 export class DataService implements OnStart {
+	// Signals
+	public onPlayerDataLoaded: Signal<(player: Player, data: PlayerSaveData) => void> = new Signal();
 	private profiles: Map<Player, ProfileStoreProfile<PlayerSaveData>> = new Map();
 
 	constructor(private playerService: PlayerService) {}
