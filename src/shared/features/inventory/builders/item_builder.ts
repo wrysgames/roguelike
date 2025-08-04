@@ -49,6 +49,7 @@ export class ItemBuilder<T extends BaseItem<InferStats<T>, InferTags<T>>> {
 	}
 
 	build(): T {
-		return this.item as T;
+		this.validate();
+		return this.item;
 	}
 }

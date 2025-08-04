@@ -114,6 +114,7 @@
 			"bracketSpacing": true
 		},
 		"globals": [
+			"tostring",
 			"require",
 			"table",
 			"os",
