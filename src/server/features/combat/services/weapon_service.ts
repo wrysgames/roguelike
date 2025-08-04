@@ -12,7 +12,7 @@ export class WeaponService implements OnStart {
 	public onStart(): void {
 		this.dataService.onPlayerDataLoaded.Connect((player, data) => {
 			const armor = getArmorById('armor:wooden_armor');
-			if (armor) print(this.calculateItemStats(armor, 2, 1));
+			if (armor) print(this.calculateItemStats(armor, 1, 25));
 		});
 	}
 
