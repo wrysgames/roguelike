@@ -8,7 +8,7 @@ export interface InputActionBinding {
 	keys?: Enum.KeyCode[];
 	inputTypes?: Enum.UserInputType[];
 
-	callback: (inputObject: InputObject, gameProcessed: boolean) => void;
+	callback: (inputObject: InputObject) => void;
 
 	context?: InputContext;
 	consumeInput?: boolean;
@@ -23,7 +23,7 @@ export class InputManager {
 	private currentContext: string = 'Game';
 
 	private constructor() {
-		UserInputService.InputBegan.ConnectParallel((input, gameProcessed) => {
+		UserInputService.InputBegan.Connect((input, gameProcessed) => {
 			if (gameProcessed) return;
 
 			for (let [_, bindings] of this.bindings) {
@@ -37,7 +37,7 @@ export class InputManager {
 					const matchesContext = binding.context === undefined || binding.context === this.currentContext;
 
 					if (matchesContext && (matchesKey || matchesInputType)) {
-						binding.callback(input, gameProcessed);
+						binding.callback(input);
 						if (binding.consumeInput) return;
 					}
 				}
