@@ -4,6 +4,7 @@ import Signal from '@rbxts/signal';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { profileTemplate } from '../constants/player_data_template';
 import { PlayerSaveData, StoredItemData } from '../types/schemas/inventory';
+import { normalizeStoredItemData } from '../utils/normalize';
 import ProfileStore from '../utils/profile_store';
 import type { ProfileStoreProfile } from '../utils/profile_store/types';
 
@@ -45,12 +46,17 @@ export class DataService implements OnStart {
 		if (player.Parent === Players) {
 			this.profiles.set(player, profile);
 			print(`Profile loaded for ${player.DisplayName}!`);
+
+			// Normalize the data before doing anything
+			if (profile.Data.equipped.weapon) {
+				profile.Data.equipped.weapon = normalizeStoredItemData(profile.Data.equipped.weapon);
+			}
+
+			// Fire data loaded events
+			this.onPlayerDataLoaded.Fire(player, profile.Data);
 		} else {
 			profile.EndSession();
 		}
-
-		// Fire data loaded events
-		this.onPlayerDataLoaded.Fire(player, profile.Data);
 	}
 
 	public unloadProfile(player: Player): void {
