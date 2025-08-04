@@ -115,6 +115,8 @@
 			"lineEnding": "crlf"
 		},
 		"globals": [
+			"pairs",
+			"ipairs",
 			"tostring",
 			"require",
 			"table",

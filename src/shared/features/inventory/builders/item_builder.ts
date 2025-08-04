@@ -11,11 +11,23 @@ export class ItemBuilder<T extends BaseItem<InferStats<T>, InferTags<T>>> {
 		this.item.name = name;
 		this.item.type = itemType;
 		this.item.rarity = rarity;
+		this.item.maxLevel = 50;
+		this.item.maxTiers = 5;
 	}
 
 	public obtainableInDrop(): this {
 		this.item.obtainable ??= {};
 		this.item.obtainable.drops = true;
+		return this;
+	}
+
+	public withMaxTiers(maxTiers: number): this {
+		this.item.maxTiers = maxTiers;
+		return this;
+	}
+
+	public withMaxLevels(maxLevel: number): this {
+		this.item.maxLevel = maxLevel;
 		return this;
 	}
 
