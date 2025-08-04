@@ -1,17 +1,12 @@
 import { OnStart, Service } from '@flamework/core';
 import { Players } from '@rbxts/services';
 import { PlayerService } from 'server/features/player/services/player_service';
+import { profileTemplate } from '../constants/player_data_template';
 import { PlayerSaveData } from '../types/schemas/inventory';
 import ProfileStore from '../utils/profile_store';
 import type { ProfileStoreProfile } from '../utils/profile_store/types';
 
-const PROFILE_TEMPLATE: PlayerSaveData = {
-	equipped: {},
-	gold: 0,
-	inventory: [],
-};
-
-const PLAYER_STORE = new ProfileStore<PlayerSaveData>('test', PROFILE_TEMPLATE);
+const PLAYER_STORE = new ProfileStore<PlayerSaveData>('test', profileTemplate);
 
 @Service()
 export class DataService implements OnStart {
