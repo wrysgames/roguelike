@@ -4,8 +4,6 @@ import { ItemBuilder } from './item_builder';
 export class WeaponBuilder extends ItemBuilder<Weapon> {
 	constructor(id: string, name: string) {
 		super(id, name, 'weapon');
-		this.item.tags = [];
-		this.item.upgrades = [];
 	}
 
 	withWeaponType(weaponType: Weapon['weaponType']): this {
