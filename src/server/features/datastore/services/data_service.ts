@@ -29,6 +29,9 @@ export class DataService implements OnStart {
 	}
 
 	public loadProfile(player: Player): void {
+		// Only load 1 profile
+		if (this.profiles.has(player)) return;
+
 		const profile = PLAYER_STORE.StartSessionAsync(tostring(player.UserId), {
 			Cancel: () => player.Parent !== Players,
 		});
