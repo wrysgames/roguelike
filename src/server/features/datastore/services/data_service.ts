@@ -3,7 +3,7 @@ import { Players } from '@rbxts/services';
 import Signal from '@rbxts/signal';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { profileTemplate } from '../constants/player_data_template';
-import { PlayerSaveData } from '../types/schemas/inventory';
+import { PlayerSaveData, StoredItemData } from '../types/schemas/inventory';
 import ProfileStore from '../utils/profile_store';
 import type { ProfileStoreProfile } from '../utils/profile_store/types';
 
@@ -58,5 +58,10 @@ export class DataService implements OnStart {
 		if (profile) {
 			profile.EndSession();
 		}
+	}
+
+	public getEquippedWeapon(player: Player): StoredItemData | undefined {
+		const profile = this.profiles.get(player);
+		return profile?.Data.equipped.weapon;
 	}
 }
