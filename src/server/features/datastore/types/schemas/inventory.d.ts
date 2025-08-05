@@ -1,3 +1,5 @@
+import type { ItemType } from 'shared/features/inventory/types';
+
 export interface StoredItemData {
 	instanceId: string;
 	id: string; // item ID
@@ -10,7 +12,6 @@ export interface PlayerSaveData {
 	gold: number;
 	inventory: StoredItemData[];
 	equipped: {
-		weapon?: StoredItemData;
-		armor?: StoredItemData;
+		[slot in ItemType]?: StoredItemData;
 	};
 }

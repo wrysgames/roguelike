@@ -2,6 +2,7 @@ export type InferStats<T> = T extends BaseItem<infer S, defined> ? S : never;
 export type InferTags<T> = T extends BaseItem<defined, infer R> ? R : never;
 
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
+export type ItemType = 'weapon' | 'armor';
 
 export interface Item {
 	id: string;
@@ -27,7 +28,7 @@ export interface BaseUpgrade<TStats extends defined> {
 
 export interface BaseItem<TStats extends defined, TTag extends defined> {
 	id: string;
-	type: string;
+	type: ItemType;
 	name: string;
 	tags: TTag[];
 	baseStats: TStats;

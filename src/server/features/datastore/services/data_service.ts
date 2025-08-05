@@ -1,7 +1,9 @@
 import { OnStart, Service } from '@flamework/core';
+import { deepCopy } from '@rbxts/object-utils';
 import { Players } from '@rbxts/services';
-import Signal from '@rbxts/signal';
 import { PlayerService } from 'server/features/player/services/player_service';
+import { PlayerSignals } from 'server/signals/player_signal';
+import { ItemType } from 'shared/features/inventory/types';
 import { profileTemplate } from '../constants/player_data_template';
 import { PlayerSaveData, StoredItemData } from '../types/schemas/inventory';
 import { normalizeStoredItemData } from '../utils/normalize';
@@ -12,8 +14,6 @@ const PLAYER_STORE = new ProfileStore<PlayerSaveData>('test', profileTemplate);
 
 @Service()
 export class DataService implements OnStart {
-	// Signals
-	public onPlayerDataLoaded: Signal<(player: Player, data: PlayerSaveData) => void> = new Signal();
 	private profiles: Map<Player, ProfileStoreProfile<PlayerSaveData>> = new Map();
 
 	constructor(private playerService: PlayerService) {}
@@ -51,7 +51,7 @@ export class DataService implements OnStart {
 			this.normalizePlayerData(profile.Data);
 
 			// Fire data loaded events
-			this.onPlayerDataLoaded.Fire(player, profile.Data);
+			PlayerSignals.onPlayerDataLoaded.Fire(player, profile.Data);
 		} else {
 			profile.EndSession();
 		}
@@ -64,9 +64,78 @@ export class DataService implements OnStart {
 		}
 	}
 
+	public equipItem(player: Player, instanceId: string, slot: ItemType): StoredItemData | undefined {
+		const inventory = this.getInventory(player);
+		if (inventory) {
+			// check if the instance is in the inventory
+			const instance = this.getInstanceFromPlayerInventory(player, instanceId);
+			if (!instance) return undefined;
+			const profile = this.profiles.get(player);
+			if (!profile) return undefined;
+
+			switch (slot) {
+				case 'weapon':
+					profile.Data.equipped.weapon = instance;
+					break;
+				case 'armor':
+					profile.Data.equipped.armor = instance;
+					break;
+				default:
+					return undefined;
+			}
+
+			return instance;
+		} else {
+			warn('[DataService]: Inventory not found');
+			return undefined;
+		}
+	}
+
+	public unequipItem(player: Player, slot: ItemType): void {
+		const profile = this.profiles.get(player);
+		if (!profile) return;
+
+		profile.Data.equipped[slot] = undefined;
+	}
+
+	public equipWeapon(player: Player, instanceId: string): StoredItemData | undefined {
+		return this.equipItem(player, instanceId, 'weapon');
+	}
+
+	public equipArmor(player: Player, instanceId: string): StoredItemData | undefined {
+		return this.equipItem(player, instanceId, 'armor');
+	}
+
 	public getEquippedWeapon(player: Player): StoredItemData | undefined {
 		const profile = this.profiles.get(player);
-		return profile?.Data.equipped.weapon;
+		if (!profile) return undefined;
+		const weapon = profile.Data.equipped.weapon;
+		if (!weapon) return undefined;
+		return deepCopy(weapon);
+	}
+
+	public getEquippedArmor(player: Player): StoredItemData | undefined {
+		const profile = this.profiles.get(player);
+		if (!profile) return undefined;
+		const armor = profile.Data.equipped.armor;
+		if (!armor) return undefined;
+		return deepCopy(armor);
+	}
+
+	public getInventory(player: Player): StoredItemData[] | undefined {
+		// copy the items from the inventory
+		const profile = this.profiles.get(player);
+		if (!profile) return;
+		if (!profile.Data) return;
+		return deepCopy(profile?.Data.inventory);
+	}
+
+	private getInstanceFromPlayerInventory(player: Player, instanceId: string): StoredItemData | undefined {
+		const inventory = this.getInventory(player);
+		if (!inventory) return undefined;
+		const instance = inventory.find((item) => item.instanceId === instanceId);
+		if (instance) return instance;
+		return undefined;
 	}
 
 	private normalizePlayerData(data: PlayerSaveData): void {
