@@ -1,5 +1,6 @@
 import { Controller, OnStart } from '@flamework/core';
 import { InputManager } from 'client/shared/utils/input_manager';
+import { ClientEvents } from 'client/signals/networking/events';
 
 @Controller()
 export class CombatController implements OnStart {
@@ -11,10 +12,10 @@ export class CombatController implements OnStart {
 
 	onStart(): void {
 		this.inputManager.bindAction({
-			name: 'test',
+			name: 'dash',
 			keys: [Enum.KeyCode.Q],
 			callback: () => {
-				print('DASH!!!');
+				ClientEvents.dash.fire();
 			},
 		});
 	}
