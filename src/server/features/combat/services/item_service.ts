@@ -8,7 +8,7 @@ import { Armor, BaseItem, InferStats, InferTags } from 'shared/features/inventor
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
-export class WeaponService implements OnStart {
+export class ItemService implements OnStart {
 	constructor(private dataService: DataService) {}
 
 	public onStart(): void {
