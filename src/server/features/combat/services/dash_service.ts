@@ -2,7 +2,7 @@ import { OnStart, Service } from '@flamework/core';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { PlayerSignals } from 'server/signals/player_signal';
-import { isR15CharacterModel, validateR15CharacterModel } from 'shared/utils/character';
+import { isR15CharacterModel } from 'shared/utils/character';
 import { DashState } from '../utils/dash';
 
 // const DASH_COOLDOWN = 0.75;
