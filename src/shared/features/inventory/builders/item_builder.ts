@@ -3,7 +3,7 @@ import { BaseItem, BaseUpgrade, InferStats, InferTags } from '../types';
 export class ItemBuilder<T extends BaseItem<InferStats<T>, InferTags<T>>> {
 	protected item: Partial<T> = {};
 
-	constructor(id: string, name: string, itemType: string, rarity: T['rarity']) {
+	constructor(id: T['id'], name: T['name'], itemType: T['type'], rarity: T['rarity']) {
 		this.item.id = `${itemType}:${id}`;
 		this.item.name = name;
 		this.item.type = itemType;

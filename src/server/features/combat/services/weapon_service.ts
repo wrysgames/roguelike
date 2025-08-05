@@ -1,9 +1,10 @@
 import { OnStart, Service } from '@flamework/core';
 import ObjectUtils from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
+import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { getWeaponById } from 'shared/features/inventory/data/weapons';
-import { BaseItem, InferStats, InferTags, Weapon } from 'shared/features/inventory/types';
+import { Armor, BaseItem, InferStats, InferTags, Weapon } from 'shared/features/inventory/types';
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
@@ -17,10 +18,22 @@ export class WeaponService implements OnStart {
 		});
 	}
 
-	public getEquippedWeapon(player: Player): Readonly<Weapon> | undefined {
-		const weaponId = this.dataService.getEquippedWeapon(player)?.id;
-		if (weaponId) {
-			return getWeaponById(weaponId);
+	public equipWeapon(player: Player, instanceId: string): void {
+		this.dataService.equipWeapon(player, instanceId);
+	}
+
+	public equipArmor(player: Player, instanceId: string): void {
+		this.dataService.equipArmor(player, instanceId);
+	}
+
+	public getEquippedWeapon(player: Player): Readonly<StoredItemData> | undefined {
+		return this.dataService.getEquippedWeapon(player);
+	}
+
+	public getEquippedArmor(player: Player): Readonly<Armor> | undefined {
+		const armorId = this.dataService.getEquippedArmor(player)?.id;
+		if (armorId) {
+			return getArmorById(armorId);
 		}
 		return undefined;
 	}
