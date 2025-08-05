@@ -13,13 +13,11 @@ export class DashService implements OnStart {
 	constructor(private playerService: PlayerService) {}
 
 	public onStart(): void {
-		ServerEvents.dash.connect((player) => {
+		ServerEvents.combat.dash.connect((player) => {
 			this.performDash(player);
 		});
 
-		this.playerService.addPlayerAddedCallback((player) => {
-			this.getDashState(player);
-		});
+		this.playerService.addPlayerAddedCallback((player) => this.getDashState(player));
 
 		// invalidate the player's dash state when they leave
 		this.playerService.addPlayerLeavingCallback((player) => this.dashStates.delete(player));
@@ -36,7 +34,7 @@ export class DashService implements OnStart {
 		PlayerSignals.onPlayerDashed.Fire(player);
 	}
 
-	private getDashState(player: Player): DashState {
+	public getDashState(player: Player): DashState {
 		const state = this.dashStates.get(player);
 		if (!state) {
 			const newDashState = new DashState();

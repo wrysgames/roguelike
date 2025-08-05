@@ -15,7 +15,7 @@ export class CombatController implements OnStart {
 			name: 'dash',
 			keys: [Enum.KeyCode.Q],
 			callback: () => {
-				ClientEvents.dash.fire();
+				ClientEvents.combat.dash.fire();
 			},
 		});
 	}
