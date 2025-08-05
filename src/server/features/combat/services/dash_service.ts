@@ -1,7 +1,7 @@
 import { OnStart, Service } from '@flamework/core';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { ServerEvents } from 'server/signals/networking/events';
-import { DashState } from '../types/dash';
+import { DashState } from '../utils/dash';
 
 // const DASH_COOLDOWN = 0.75;
 
@@ -30,14 +30,14 @@ export class DashService implements OnStart {
 
 		const character = player.Character;
 		if (!character) return;
+
+		print('Dash performed');
 	}
 
 	private getDashState(player: Player): DashState {
 		const state = this.dashStates.get(player);
 		if (!state) {
 			const newDashState = new DashState();
-			newDashState.isDashing = false;
-			newDashState.isDashCooldownActive = false;
 			this.dashStates.set(player, newDashState);
 			return newDashState;
 		}
