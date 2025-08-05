@@ -1,6 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
 import { deepCopy } from '@rbxts/object-utils';
-import { Players } from '@rbxts/services';
+import { HttpService, Players } from '@rbxts/services';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { PlayerSignals } from 'server/signals/player_signal';
 import { ItemType } from 'shared/features/inventory/types';
@@ -84,6 +84,7 @@ export class DataService implements OnStart {
 					return undefined;
 			}
 
+			PlayerSignals.onItemEquipped.Fire(player, instance.instanceId);
 			return instance;
 		} else {
 			warn('[DataService]: Inventory not found');
@@ -95,7 +96,11 @@ export class DataService implements OnStart {
 		const profile = this.profiles.get(player);
 		if (!profile) return;
 
+		const item = profile.Data.equipped[slot];
+		if (!item) return;
+
 		profile.Data.equipped[slot] = undefined;
+		PlayerSignals.onItemUnequipped.Fire(player, item.instanceId);
 	}
 
 	public equipWeapon(player: Player, instanceId: string): StoredItemData | undefined {
@@ -146,5 +151,9 @@ export class DataService implements OnStart {
 			data.equipped.armor = normalizeStoredItemData(data.equipped.armor);
 		}
 		data.inventory = data.inventory.map(normalizeStoredItemData);
+	}
+
+	public generateInstanceId(): string {
+		return HttpService.GenerateGUID(false);
 	}
 }
