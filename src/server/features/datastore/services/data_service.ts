@@ -1,10 +1,9 @@
 import { OnStart, Service } from '@flamework/core';
 import { deepCopy } from '@rbxts/object-utils';
 import { Players } from '@rbxts/services';
-import Signal from '@rbxts/signal';
 import { PlayerService } from 'server/features/player/services/player_service';
+import { PlayerSignals } from 'server/signals/player_signal';
 import { ItemType } from 'shared/features/inventory/types';
-import { deepClone } from 'shared/utils/instance';
 import { profileTemplate } from '../constants/player_data_template';
 import { PlayerSaveData, StoredItemData } from '../types/schemas/inventory';
 import { normalizeStoredItemData } from '../utils/normalize';
@@ -15,8 +14,6 @@ const PLAYER_STORE = new ProfileStore<PlayerSaveData>('test', profileTemplate);
 
 @Service()
 export class DataService implements OnStart {
-	// Signals
-	public onPlayerDataLoaded: Signal<(player: Player, data: PlayerSaveData) => void> = new Signal();
 	private profiles: Map<Player, ProfileStoreProfile<PlayerSaveData>> = new Map();
 
 	constructor(private playerService: PlayerService) {}
@@ -54,7 +51,7 @@ export class DataService implements OnStart {
 			this.normalizePlayerData(profile.Data);
 
 			// Fire data loaded events
-			this.onPlayerDataLoaded.Fire(player, profile.Data);
+			PlayerSignals.onPlayerDataLoaded.Fire(player, profile.Data);
 		} else {
 			profile.EndSession();
 		}
@@ -111,24 +108,34 @@ export class DataService implements OnStart {
 
 	public getEquippedWeapon(player: Player): StoredItemData | undefined {
 		const profile = this.profiles.get(player);
-		return deepClone(profile?.Data.equipped.weapon);
+		if (!profile) return undefined;
+		const weapon = profile.Data.equipped.weapon;
+		if (!weapon) return undefined;
+		return deepCopy(weapon);
 	}
 
 	public getEquippedArmor(player: Player): StoredItemData | undefined {
 		const profile = this.profiles.get(player);
-		return deepClone(profile?.Data.equipped.armor);
+		if (!profile) return undefined;
+		const armor = profile.Data.equipped.armor;
+		if (!armor) return undefined;
+		return deepCopy(armor);
 	}
 
 	public getInventory(player: Player): StoredItemData[] | undefined {
 		// copy the items from the inventory
 		const profile = this.profiles.get(player);
 		if (!profile) return;
-		return deepClone(profile?.Data.inventory);
+		if (!profile.Data) return;
+		return deepCopy(profile?.Data.inventory);
 	}
 
 	private getInstanceFromPlayerInventory(player: Player, instanceId: string): StoredItemData | undefined {
 		const inventory = this.getInventory(player);
-		return deepClone(inventory?.find((item) => item.instanceId === instanceId));
+		if (!inventory) return undefined;
+		const instance = inventory.find((item) => item.instanceId === instanceId);
+		if (instance) return instance;
+		return undefined;
 	}
 
 	private normalizePlayerData(data: PlayerSaveData): void {
