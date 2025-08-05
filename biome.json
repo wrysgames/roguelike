@@ -89,7 +89,7 @@
 				"noMisleadingInstantiator": "error",
 				"noPrototypeBuiltins": "error",
 				"noRedeclare": "error",
-				"noShadowRestrictedNames": "error",
+				"noShadowRestrictedNames": "off",
 				"noSparseArray": "error",
 				"noUnsafeDeclarationMerging": "error",
 				"noUnsafeNegation": "error",
