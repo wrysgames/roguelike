@@ -8,14 +8,11 @@ import { Armor, BaseItem, InferStats, InferTags } from 'shared/features/inventor
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
-export class WeaponService implements OnStart {
+export class ItemService implements OnStart {
 	constructor(private dataService: DataService) {}
 
 	public onStart(): void {
-		PlayerSignals.onPlayerDataLoaded.Connect((player, data) => {
-			const armor = getArmorById('armor:wooden_armor');
-			if (armor) print(this.calculateItemStats(armor, 0, 1));
-		});
+		PlayerSignals.onPlayerDataLoaded.Connect(() => undefined);
 	}
 
 	public equipWeapon(player: Player, instanceId: string): void {
