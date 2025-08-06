@@ -1,8 +1,7 @@
 import { OnInit, OnStart, Service } from '@flamework/core';
 import { PhysicsService } from '@rbxts/services';
 import { CharacterService } from 'server/features/player/services/character_service';
-import { PlayerService } from 'server/features/player/services/player_service';
-import { CollisionGroup } from 'shared/types/collision_group';
+import { CollisionGroup } from 'shared/constants/collision_group';
 import { getDescendantsOfType } from 'shared/utils/instance';
 
 @Service()
