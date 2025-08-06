@@ -9,7 +9,6 @@ export class CollisionService implements OnInit, OnStart {
 	constructor(private characterService: CharacterService) {}
 
 	public onInit(): void | Promise<void> {
-		PhysicsService.RegisterCollisionGroup(CollisionGroup.Default);
 		PhysicsService.RegisterCollisionGroup(CollisionGroup.Humanoid);
 		PhysicsService.RegisterCollisionGroup(CollisionGroup.Invincible);
 
