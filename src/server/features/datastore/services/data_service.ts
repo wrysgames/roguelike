@@ -1,5 +1,5 @@
 import { OnStart, Service } from '@flamework/core';
-import { deepCopy } from '@rbxts/object-utils';
+import ObjectUtils, { deepCopy } from '@rbxts/object-utils';
 import { HttpService, Players } from '@rbxts/services';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { PlayerSignals } from 'server/signals/player_signal';
@@ -131,7 +131,9 @@ export class DataService implements OnStart {
 	}
 
 	private normalizePlayerData(data: PlayerSaveData): void {
-		(data.equipped as Map<ItemType, StoredItemData>).forEach((item, key) => {
+		ObjectUtils.keys(data.equipped).forEach((key) => {
+			const item = data.equipped[key];
+			if (!item) return;
 			data.equipped[key] = normalizeStoredItemData(item);
 		});
 

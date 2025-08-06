@@ -3,7 +3,6 @@ import ObjectUtils from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
 import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
 import { ServerEvents } from 'server/signals/networking/events';
-import { PlayerSignals } from 'server/signals/player_signal';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { Armor, BaseItem, InferStats, InferTags } from 'shared/features/inventory/types';
 import { deepClone } from 'shared/utils/instance';
