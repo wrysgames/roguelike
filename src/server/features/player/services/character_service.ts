@@ -63,8 +63,8 @@ export class CharacterService implements OnStart {
 		const state = character.Humanoid.GetState();
 		if (
 			state === Enum.HumanoidStateType.Jumping ||
-			state === Enum.HumanoidStateType.FallingDown ||
-			state === Enum.HumanoidStateType.Flying
+			state === Enum.HumanoidStateType.Flying ||
+			state === Enum.HumanoidStateType.Freefall
 		)
 			return true;
 		return false;
@@ -82,5 +82,9 @@ export class CharacterService implements OnStart {
 		const position = character.HumanoidRootPart.Position;
 		const moveDirection = direction.Unit;
 		return CFrame.lookAt(position, position.add(moveDirection));
+	}
+
+	public getMoveDirection(character: Character) {
+		return character.Humanoid.MoveDirection;
 	}
 }
