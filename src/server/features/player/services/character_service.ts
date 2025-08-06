@@ -39,8 +39,10 @@ export class CharacterService implements OnStart {
 			character.Humanoid.JumpPower = 50;
 			character.Humanoid.JumpHeight = 7.2;
 		} else {
+			if (state.isJumpEnabled) return;
 			character.Humanoid.JumpPower = state.jumpPower;
 			character.Humanoid.JumpHeight = state.jumpHeight;
+			state.isJumpEnabled = true;
 		}
 	}
 
@@ -50,14 +52,17 @@ export class CharacterService implements OnStart {
 			const newState = new CharacterState();
 			newState.jumpHeight = character.Humanoid.JumpHeight;
 			newState.jumpPower = character.Humanoid.JumpPower;
+			newState.isJumpEnabled = false;
 			this.characterStates.set(character, newState);
-		} else {
-			state.jumpHeight = character.Humanoid.JumpHeight;
-			state.jumpPower = character.Humanoid.JumpPower;
-		}
 
-		character.Humanoid.JumpPower = 0;
-		character.Humanoid.JumpHeight = 0;
+			character.Humanoid.JumpPower = 0;
+			character.Humanoid.JumpHeight = 0;
+		} else {
+			if (!state.isJumpEnabled) return;
+			state.isJumpEnabled = false;
+			character.Humanoid.JumpPower = 0;
+			character.Humanoid.JumpHeight = 0;
+		}
 	}
 
 	public isInAir(character: Character): boolean {
