@@ -48,7 +48,7 @@ export class DashService implements OnStart {
 
 		// set the character's collision group to Invincible
 		this.collisionService.setModelCollisionGroup(character, CollisionGroup.Invincible);
-		this.characterService.enableJump(character);
+		this.characterService.disableJump(character);
 
 		const previousAutoRotate = humanoid.AutoRotate;
 		humanoid.AutoRotate = false;
