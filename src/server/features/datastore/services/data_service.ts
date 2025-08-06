@@ -1,5 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
 import ObjectUtils, { deepCopy } from '@rbxts/object-utils';
+import ProfileStore, { Profile } from '@rbxts/profile-store';
 import { HttpService, Players } from '@rbxts/services';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { PlayerSignals } from 'server/signals/player_signal';
@@ -7,14 +8,12 @@ import { ItemType } from 'shared/features/inventory/types';
 import { profileTemplate } from '../constants/player_data_template';
 import { PlayerSaveData, StoredItemData } from '../types/schemas/inventory';
 import { normalizeStoredItemData } from '../utils/normalize';
-import ProfileStore from '../utils/profile_store';
-import type { ProfileStoreProfile } from '../utils/profile_store/types';
 
-const PLAYER_STORE = new ProfileStore<PlayerSaveData>('test', profileTemplate);
+const PLAYER_STORE = ProfileStore.New<PlayerSaveData>('test', profileTemplate);
 
 @Service()
 export class DataService implements OnStart {
-	private profiles: Map<Player, ProfileStoreProfile<PlayerSaveData>> = new Map();
+	private profiles: Map<Player, Profile<PlayerSaveData>> = new Map();
 
 	constructor(private playerService: PlayerService) {}
 
