@@ -1,8 +1,6 @@
-import { Weapon } from 'shared/features/inventory/types';
 import { AttackAnimation } from 'shared/types/animation';
 
 export class AttackState {
-	equippedWeapon?: Weapon;
 	equippedWeaponModel?: Model;
 	currentAttackAnimation?: AttackAnimation;
 	hitboxConnection?: RBXScriptConnection | undefined;
