@@ -1,7 +1,6 @@
 import { AttackAnimation } from 'shared/types/animation';
 
 export class AttackState {
-	equippedWeaponModel?: Model;
 	currentAttackAnimation?: AttackAnimation;
 	hitboxConnection?: RBXScriptConnection | undefined;
 	comboIndex: number = 0;
