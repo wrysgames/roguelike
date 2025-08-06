@@ -3,6 +3,7 @@ import ObjectUtils from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
 import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
 import { ServerEvents } from 'server/signals/networking/events';
+import { SWORD_ATTACK_ANIMATION_SET } from 'shared/constants/animations/attack_animation_sets/sword';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { getWeaponById } from 'shared/features/inventory/data/weapons';
 import { Armor, BaseItem, InferStats, InferTags, Weapon } from 'shared/features/inventory/types';
@@ -92,7 +93,7 @@ export class ItemService implements OnStart {
 	public getWeaponAttackAnimationSet(weapon: Readonly<Weapon>): AttackAnimation[] {
 		switch (weapon.visualType) {
 			case 'sword': {
-				return [];
+				return SWORD_ATTACK_ANIMATION_SET;
 			}
 			default:
 				return [];

@@ -10,4 +10,8 @@ export interface AttackAnimation {
 		hitbox?: KeyframeRange;
 		combo?: KeyframeRange;
 	};
+	sounds?: {
+		attack?: string;
+		hitConfirmed?: string;
+	};
 }
