@@ -1,12 +1,12 @@
 import { OnStart, Service } from '@flamework/core';
 import { Character } from 'shared/types/character';
 import { isCharacterModel } from 'shared/utils/character';
-import { JumpState } from '../types/jump_state';
+import { CharacterState } from '../utils/character_state';
 import { PlayerService } from './player_service';
 
 @Service()
 export class CharacterService implements OnStart {
-	private jumpStates: Map<Character, JumpState> = new Map();
+	private characterStates: Map<Character, CharacterState> = new Map();
 	private characterAddedCallbacks: ((character: Character, player: Player) => void)[] = [];
 
 	constructor(private playerService: PlayerService) {}
@@ -21,7 +21,7 @@ export class CharacterService implements OnStart {
 			});
 			player.CharacterRemoving.Connect((character) => {
 				if (!isCharacterModel(character)) return;
-				this.jumpStates.delete(character);
+				this.characterStates.delete(character);
 			});
 		});
 	}
@@ -33,7 +33,7 @@ export class CharacterService implements OnStart {
 	}
 
 	public enableJump(character: Character): void {
-		const state = this.jumpStates.get(character);
+		const state = this.characterStates.get(character);
 		if (!state) {
 			character.Humanoid.JumpPower = 50;
 			character.Humanoid.JumpHeight = 7.2;
@@ -44,12 +44,12 @@ export class CharacterService implements OnStart {
 	}
 
 	public disableJump(character: Character): void {
-		const state = this.jumpStates.get(character);
+		const state = this.characterStates.get(character);
 		if (!state) {
-			this.jumpStates.set(character, {
-				jumpHeight: character.Humanoid.JumpHeight,
-				jumpPower: character.Humanoid.JumpPower,
-			});
+			const newState = new CharacterState();
+			newState.jumpHeight = character.Humanoid.JumpHeight;
+			newState.jumpPower = character.Humanoid.JumpPower;
+			this.characterStates.set(character, newState);
 		} else {
 			state.jumpHeight = character.Humanoid.JumpHeight;
 			state.jumpPower = character.Humanoid.JumpPower;
@@ -57,5 +57,16 @@ export class CharacterService implements OnStart {
 
 		character.Humanoid.JumpPower = 0;
 		character.Humanoid.JumpHeight = 0;
+	}
+
+	public isInAir(character: Character): boolean {
+		const state = character.Humanoid.GetState();
+		if (
+			state === Enum.HumanoidStateType.Jumping ||
+			state === Enum.HumanoidStateType.FallingDown ||
+			state === Enum.HumanoidStateType.Flying
+		)
+			return true;
+		return false;
 	}
 }

@@ -17,6 +17,7 @@ export class DashService implements OnStart {
 	constructor(
 		private playerService: PlayerService,
 		private collisionService: CollisionService,
+		private characterService: CharacterService,
 	) {}
 
 	public onStart(): void {
@@ -39,10 +40,20 @@ export class DashService implements OnStart {
 
 		if (!isR15CharacterModel(character)) return;
 
+		const humanoid = character.Humanoid;
+
 		// set the character's collision group to Invincible
 		this.collisionService.setModelCollisionGroup(character, CollisionGroup.Invincible);
+		this.characterService.enableJump(character);
 
-		print('Dash performed');
+		const previousAutoRotate = humanoid.AutoRotate;
+		humanoid.AutoRotate = false;
+
+		state.isDashing = true;
+		state.isDashCooldownActive = true;
+
+		humanoid.AutoRotate = previousAutoRotate;
+
 		PlayerSignals.onPlayerDashed.Fire(player);
 	}
 
