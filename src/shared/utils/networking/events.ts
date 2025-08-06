@@ -9,7 +9,9 @@ export interface ClientToServerEvents {
 
 export interface ServerToClientEvents {
 	// VFX
-	vfx: {};
+	vfx: {
+		spawnDashParticles(root: Instance, rotation: CFrame, isInAir: boolean): void;
+	};
 }
 
 // Returns an object containing a `server` and `client` field.

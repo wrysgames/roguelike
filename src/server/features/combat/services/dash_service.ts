@@ -52,6 +52,13 @@ export class DashService implements OnStart {
 		state.isDashing = true;
 		state.isDashCooldownActive = true;
 
+		const characterIsInAir = this.characterService.isInAir(character);
+		ServerEvents.vfx.spawnDashParticles.broadcast(
+			character.HumanoidRootPart,
+			this.characterService.getMoveDirectionCFrame(character),
+			characterIsInAir,
+		);
+
 		humanoid.AutoRotate = previousAutoRotate;
 
 		PlayerSignals.onPlayerDashed.Fire(player);
