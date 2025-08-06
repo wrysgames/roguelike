@@ -5,6 +5,7 @@ import { ServerEvents } from 'server/signals/networking/events';
 import { AttackAnimation } from 'shared/types/animation';
 import { isCharacterModel } from 'shared/utils/character';
 import { AttackState } from '../utils/attack';
+import { SharedStateManager } from '../utils/shared_state_manager';
 import { DashService } from './dash_service';
 import { ItemService } from './item_service';
 
@@ -15,23 +16,18 @@ const DEFAULT_COMBO_START_KEYFRAME_NAME = 'Combo';
 
 @Service()
 export class CombatService implements OnStart {
-	private attackStates: Map<Player, AttackState> = new Map();
-
 	constructor(
-		private playerService: PlayerService,
-		private dashService: DashService,
 		private characterService: CharacterService,
 		private itemService: ItemService,
 	) {}
 
 	public onStart(): void {
 		ServerEvents.combat.attack.connect((player) => this.performAttack(player));
-		this.playerService.addPlayerAddedCallback((player) => this.getAttackState(player));
 	}
 
 	public performAttack(player: Player): void {
 		const state = this.getAttackState(player);
-		const dashState = this.dashService.getDashState(player);
+		const dashState = SharedStateManager.getInstance().getDashState(player);
 
 		if (dashState.isDashing) return;
 		if (state.isComboCooldownActive) return;
@@ -132,13 +128,7 @@ export class CombatService implements OnStart {
 		state.comboResetTask = undefined;
 	}
 
-	private getAttackState(player: Player): AttackState {
-		const state = this.attackStates.get(player);
-		if (!state) {
-			const newAttackState = new AttackState();
-			this.attackStates.set(player, newAttackState);
-			return newAttackState;
-		}
-		return state;
+	public getAttackState(player: Player): AttackState {
+		return SharedStateManager.getInstance().getAttackState(player);
 	}
 }

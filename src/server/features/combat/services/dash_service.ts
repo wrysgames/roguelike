@@ -8,6 +8,8 @@ import { PlayerSignals } from 'server/signals/player_signal';
 import { CollisionGroup } from 'shared/constants/collision_group';
 import { isCharacterModel } from 'shared/utils/character';
 import { DashState } from '../utils/dash';
+import { SharedStateManager } from '../utils/shared_state_manager';
+import { CombatService } from './combat_service';
 
 const DASH_COOLDOWN = 0.75;
 const DASH_DURATION = 0.35; // seconds
@@ -15,10 +17,7 @@ const DASH_SPEED = 30;
 
 @Service()
 export class DashService implements OnStart {
-	private dashStates: Map<Player, DashState> = new Map();
-
 	constructor(
-		private playerService: PlayerService,
 		private collisionService: CollisionService,
 		private characterService: CharacterService,
 	) {}
@@ -27,16 +26,13 @@ export class DashService implements OnStart {
 		ServerEvents.combat.dash.connect((player) => {
 			this.performDash(player);
 		});
-
-		this.playerService.addPlayerAddedCallback((player) => this.getDashState(player));
-
-		// invalidate the player's dash state when they leave
-		this.playerService.addPlayerLeavingCallback((player) => this.dashStates.delete(player));
 	}
 
 	public performDash(player: Player): void {
 		const state = this.getDashState(player);
-		if (state.isDashing || state.isDashCooldownActive) return;
+		const attackState = SharedStateManager.getInstance().getAttackState(player);
+
+		if (state.isDashing || state.isDashCooldownActive || attackState.isAttacking) return;
 
 		const character = player.Character;
 		if (!character) return;
@@ -108,13 +104,7 @@ export class DashService implements OnStart {
 	}
 
 	public getDashState(player: Player): DashState {
-		const state = this.dashStates.get(player);
-		if (!state) {
-			const newDashState = new DashState();
-			this.dashStates.set(player, newDashState);
-			return newDashState;
-		}
-		return state;
+		return SharedStateManager.getInstance().getDashState(player);
 	}
 
 	private applyDashVelocity(
