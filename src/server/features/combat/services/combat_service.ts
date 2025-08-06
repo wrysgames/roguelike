@@ -1,6 +1,7 @@
 import { OnStart, Service } from '@flamework/core';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { ServerEvents } from 'server/signals/networking/events';
+import { PlayerSignals } from 'server/signals/player_signal';
 import { AttackState } from '../utils/attack';
 import { DashService } from './dash_service';
 import { ItemService } from './item_service';

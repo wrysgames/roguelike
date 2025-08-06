@@ -1,5 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
-import { deepCopy } from '@rbxts/object-utils';
+import ObjectUtils, { deepCopy } from '@rbxts/object-utils';
+import ProfileStore, { Profile } from '@rbxts/profile-store';
 import { HttpService, Players } from '@rbxts/services';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { PlayerSignals } from 'server/signals/player_signal';
@@ -7,14 +8,12 @@ import { ItemType } from 'shared/features/inventory/types';
 import { profileTemplate } from '../constants/player_data_template';
 import { PlayerSaveData, StoredItemData } from '../types/schemas/inventory';
 import { normalizeStoredItemData } from '../utils/normalize';
-import ProfileStore from '../utils/profile_store';
-import type { ProfileStoreProfile } from '../utils/profile_store/types';
 
-const PLAYER_STORE = new ProfileStore<PlayerSaveData>('test', profileTemplate);
+const PLAYER_STORE = ProfileStore.New<PlayerSaveData>('test', profileTemplate);
 
 @Service()
 export class DataService implements OnStart {
-	private profiles: Map<Player, ProfileStoreProfile<PlayerSaveData>> = new Map();
+	private profiles: Map<Player, Profile<PlayerSaveData>> = new Map();
 
 	constructor(private playerService: PlayerService) {}
 
@@ -64,7 +63,7 @@ export class DataService implements OnStart {
 		}
 	}
 
-	public equipItem(player: Player, instanceId: string, slot: ItemType): StoredItemData | undefined {
+	public equipItem(player: Player, instanceId: string): StoredItemData | undefined {
 		const inventory = this.getInventory(player);
 		if (inventory) {
 			// check if the instance is in the inventory
@@ -73,18 +72,9 @@ export class DataService implements OnStart {
 			const profile = this.profiles.get(player);
 			if (!profile) return undefined;
 
-			switch (slot) {
-				case 'weapon':
-					profile.Data.equipped.weapon = instance;
-					break;
-				case 'armor':
-					profile.Data.equipped.armor = instance;
-					break;
-				default:
-					return undefined;
-			}
+			profile.Data.equipped[instance.type] = instance;
 
-			PlayerSignals.onItemEquipped.Fire(player, instance.instanceId);
+			PlayerSignals.onItemEquipped.Fire(player, instance);
 			return instance;
 		} else {
 			warn('[DataService]: Inventory not found');
@@ -103,28 +93,12 @@ export class DataService implements OnStart {
 		PlayerSignals.onItemUnequipped.Fire(player, item.instanceId);
 	}
 
-	public equipWeapon(player: Player, instanceId: string): StoredItemData | undefined {
-		return this.equipItem(player, instanceId, 'weapon');
-	}
-
-	public equipArmor(player: Player, instanceId: string): StoredItemData | undefined {
-		return this.equipItem(player, instanceId, 'armor');
-	}
-
-	public getEquippedWeapon(player: Player): StoredItemData | undefined {
+	public getEquippedItem(player: Player, slot: ItemType): StoredItemData | undefined {
 		const profile = this.profiles.get(player);
 		if (!profile) return undefined;
-		const weapon = profile.Data.equipped.weapon;
-		if (!weapon) return undefined;
-		return deepCopy(weapon);
-	}
-
-	public getEquippedArmor(player: Player): StoredItemData | undefined {
-		const profile = this.profiles.get(player);
-		if (!profile) return undefined;
-		const armor = profile.Data.equipped.armor;
-		if (!armor) return undefined;
-		return deepCopy(armor);
+		const item = profile.Data.equipped[slot];
+		if (!item) return undefined;
+		return deepCopy(item);
 	}
 
 	public getInventory(player: Player): StoredItemData[] | undefined {
@@ -135,7 +109,11 @@ export class DataService implements OnStart {
 		return deepCopy(profile?.Data.inventory);
 	}
 
-	private getInstanceFromPlayerInventory(player: Player, instanceId: string): StoredItemData | undefined {
+	public generateInstanceId(): string {
+		return HttpService.GenerateGUID(false);
+	}
+
+	public getInstanceFromPlayerInventory(player: Player, instanceId: string): StoredItemData | undefined {
 		const inventory = this.getInventory(player);
 		if (!inventory) return undefined;
 		const instance = inventory.find((item) => item.instanceId === instanceId);
@@ -144,16 +122,12 @@ export class DataService implements OnStart {
 	}
 
 	private normalizePlayerData(data: PlayerSaveData): void {
-		if (data.equipped.weapon) {
-			data.equipped.weapon = normalizeStoredItemData(data.equipped.weapon);
-		}
-		if (data.equipped.armor) {
-			data.equipped.armor = normalizeStoredItemData(data.equipped.armor);
-		}
-		data.inventory = data.inventory.map(normalizeStoredItemData);
-	}
+		ObjectUtils.keys(data.equipped).forEach((key) => {
+			const item = data.equipped[key];
+			if (!item) return;
+			data.equipped[key] = normalizeStoredItemData(item);
+		});
 
-	public generateInstanceId(): string {
-		return HttpService.GenerateGUID(false);
+		data.inventory = data.inventory.map(normalizeStoredItemData);
 	}
 }

@@ -4,6 +4,7 @@ export interface ClientToServerEvents {
 	combat: {
 		attack(): void;
 		dash(): void;
+		equip(instanceId: string): void;
 	};
 }
 

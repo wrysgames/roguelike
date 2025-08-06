@@ -2,9 +2,11 @@ import { OnStart, Service } from '@flamework/core';
 import ObjectUtils from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
 import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
-import { PlayerSignals } from 'server/signals/player_signal';
+import { ServerEvents } from 'server/signals/networking/events';
 import { getArmorById } from 'shared/features/inventory/data/armor';
+import { getWeaponById } from 'shared/features/inventory/data/weapons';
 import { Armor, BaseItem, InferStats, InferTags } from 'shared/features/inventory/types';
+import { isCharacterModel } from 'shared/utils/character';
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
@@ -12,23 +14,47 @@ export class ItemService implements OnStart {
 	constructor(private dataService: DataService) {}
 
 	public onStart(): void {
-		PlayerSignals.onPlayerDataLoaded.Connect(() => undefined);
+		ServerEvents.combat.equip.connect((player, instanceId) => {
+			const item = this.dataService.getInstanceFromPlayerInventory(player, instanceId);
+			if (!item) return;
+			print(`Equipping ${item.id} to slot: ${item.type} for player ${player.DisplayName}`);
+			this.equipItem(player, instanceId);
+		});
 	}
 
-	public equipWeapon(player: Player, instanceId: string): void {
-		this.dataService.equipWeapon(player, instanceId);
-	}
+	public equipItem(player: Player, instanceId: string): void {
+		const character = player.Character;
+		if (!character) return;
+		if (!isCharacterModel(character)) return;
 
-	public equipArmor(player: Player, instanceId: string): void {
-		this.dataService.equipArmor(player, instanceId);
+		const item = this.dataService.equipItem(player, instanceId);
+		if (!item) return;
+
+		// Visually attach it to the player's character
+		switch (item.type) {
+			case 'weapon': {
+				const weapon = getWeaponById(item.id);
+				if (!weapon) return;
+
+				const model = weapon.model;
+				if (!model) break;
+
+				// weld the model to the player's hand
+				break;
+			}
+			case 'armor':
+				break;
+			default:
+				return;
+		}
 	}
 
 	public getEquippedWeapon(player: Player): Readonly<StoredItemData> | undefined {
-		return this.dataService.getEquippedWeapon(player);
+		return this.dataService.getEquippedItem(player, 'weapon');
 	}
 
 	public getEquippedArmor(player: Player): Readonly<Armor> | undefined {
-		const armorId = this.dataService.getEquippedArmor(player)?.id;
+		const armorId = this.dataService.getEquippedItem(player, 'armor')?.id;
 		if (armorId) {
 			return getArmorById(armorId);
 		}
