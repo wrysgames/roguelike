@@ -76,4 +76,11 @@ export class CharacterService implements OnStart {
 		const moveDirection = direction.Unit;
 		return moveDirection.Dot(facing) < -0.5;
 	}
+
+	public getFrontOrientation(character: Character): CFrame {
+		const direction = character.Humanoid.MoveDirection;
+		const position = character.HumanoidRootPart.Position;
+		const moveDirection = direction.Unit;
+		return CFrame.lookAt(position, position.add(moveDirection));
+	}
 }
