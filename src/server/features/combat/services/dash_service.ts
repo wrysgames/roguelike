@@ -1,17 +1,27 @@
 import { OnStart, Service } from '@flamework/core';
+import { RunService } from '@rbxts/services';
+import { CharacterService } from 'server/features/player/services/character_service';
 import { PlayerService } from 'server/features/player/services/player_service';
+import { CollisionService } from 'server/shared/services/collision_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { PlayerSignals } from 'server/signals/player_signal';
-import { isR15CharacterModel } from 'shared/utils/character';
+import { CollisionGroup } from 'shared/constants/collision_group';
+import { isCharacterModel } from 'shared/utils/character';
 import { DashState } from '../utils/dash';
 
-// const DASH_COOLDOWN = 0.75;
+const DASH_COOLDOWN = 0.75;
+const DASH_DURATION = 0.35; // seconds
+const DASH_SPEED = 30;
 
 @Service()
 export class DashService implements OnStart {
 	private dashStates: Map<Player, DashState> = new Map();
 
-	constructor(private playerService: PlayerService) {}
+	constructor(
+		private playerService: PlayerService,
+		private collisionService: CollisionService,
+		private characterService: CharacterService,
+	) {}
 
 	public onStart(): void {
 		ServerEvents.combat.dash.connect((player) => {
@@ -31,9 +41,69 @@ export class DashService implements OnStart {
 		const character = player.Character;
 		if (!character) return;
 
-		if (!isR15CharacterModel(character)) return;
+		if (!isCharacterModel(character)) return;
 
-		print('Dash performed');
+		const humanoid = character.Humanoid;
+		const humanoidRootPart = character.HumanoidRootPart;
+
+		// set the character's collision group to Invincible
+		this.collisionService.setModelCollisionGroup(character, CollisionGroup.Invincible);
+		this.characterService.disableJump(character);
+
+		const previousAutoRotate = humanoid.AutoRotate;
+		humanoid.AutoRotate = false;
+
+		state.isDashing = true;
+		state.isDashCooldownActive = true;
+
+		const isCharacterInAir = this.characterService.isInAir(character);
+		const isDashingBackwards = this.characterService.isMovingBackwards(character);
+
+		ServerEvents.vfx.spawnDashParticles.broadcast(
+			humanoidRootPart,
+			this.characterService.getMoveDirectionCFrame(character),
+			isCharacterInAir,
+		);
+
+		// play the animation
+		const dashAnimationId = isDashingBackwards
+			? 'rbxassetid://87023280965723'
+			: isCharacterInAir
+				? 'rbxassetid://81847735907464'
+				: 'rbxassetid://116300596660463';
+		const animationTrack = this.characterService.loadAnimation(character, dashAnimationId);
+		animationTrack.Ended.Once(() => animationTrack.Destroy());
+		animationTrack.Play();
+
+		let direction = humanoid.MoveDirection;
+		if (direction.Magnitude === 0) direction = humanoidRootPart.CFrame.LookVector;
+
+		const dashSpeedMultiplier = isCharacterInAir ? 2 : 1;
+		const dashVelocity = direction.mul(DASH_SPEED * dashSpeedMultiplier);
+
+		const velocity = isCharacterInAir ? new Vector3(dashVelocity.X, 0, dashVelocity.Z) : dashVelocity;
+		const maxForce = isCharacterInAir ? new Vector3(1e5, 1e5, 1e5) : new Vector3(1e5, 0, 1e5);
+
+		this.applyDashVelocity(
+			humanoidRootPart,
+			{
+				velocity,
+				maxForce,
+				duration: math.min(DASH_DURATION, animationTrack.Length),
+				shouldDecelerate: !isCharacterInAir,
+			},
+			() => {
+				state.isDashing = false;
+				this.characterService.enableJump(character);
+				humanoid.AutoRotate = previousAutoRotate;
+				this.collisionService.setModelCollisionGroup(character, CollisionGroup.Humanoid);
+			},
+		);
+
+		task.delay(DASH_COOLDOWN, () => {
+			state.isDashCooldownActive = false;
+		});
+
 		PlayerSignals.onPlayerDashed.Fire(player);
 	}
 
@@ -45,5 +115,42 @@ export class DashService implements OnStart {
 			return newDashState;
 		}
 		return state;
+	}
+
+	private applyDashVelocity(
+		part: BasePart,
+		options: {
+			velocity: Vector3;
+			maxForce: Vector3;
+			duration: number;
+			shouldDecelerate: boolean;
+		},
+		onComplete: () => void,
+	): void {
+		const bodyVelocity = new Instance('BodyVelocity');
+		bodyVelocity.Velocity = options.velocity;
+		bodyVelocity.MaxForce = options.maxForce;
+		bodyVelocity.Parent = part;
+
+		task.delay(options.duration, () => {
+			if (options.shouldDecelerate) {
+				const decelTime = 0.15;
+				const startVelocity = bodyVelocity.Velocity;
+				let elapsed = 0;
+				const connection = RunService.Heartbeat.Connect((dt) => {
+					elapsed += dt;
+					const alpha = math.clamp(elapsed / decelTime, 0, 1);
+					bodyVelocity.Velocity = startVelocity.Lerp(new Vector3(0, startVelocity.Y, 0), alpha);
+					if (alpha >= 1) {
+						connection.Disconnect();
+						bodyVelocity.Destroy();
+						onComplete();
+					}
+				});
+			} else {
+				bodyVelocity.Destroy();
+				onComplete();
+			}
+		});
 	}
 }

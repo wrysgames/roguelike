@@ -3,13 +3,8 @@ import { Players } from '@rbxts/services';
 
 @Service()
 export class PlayerService implements OnStart {
-	private playerJoinedCallbacks: ((player: Player) => void)[];
-	private playerLeavingCallbacks: ((player: Player) => void)[];
-
-	constructor() {
-		this.playerJoinedCallbacks = [];
-		this.playerLeavingCallbacks = [];
-	}
+	private playerJoinedCallbacks: ((player: Player) => void)[] = [];
+	private playerLeavingCallbacks: ((player: Player) => void)[] = [];
 
 	public onStart(): void {
 		Players.PlayerAdded.Connect((player) => {
