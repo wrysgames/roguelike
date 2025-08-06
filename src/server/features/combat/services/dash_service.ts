@@ -89,7 +89,7 @@ export class DashService implements OnStart {
 			{
 				velocity,
 				maxForce,
-				duration: DASH_DURATION,
+				duration: math.min(DASH_DURATION, animationTrack.Length),
 				shouldDecelerate: !isCharacterInAir,
 			},
 			() => {
