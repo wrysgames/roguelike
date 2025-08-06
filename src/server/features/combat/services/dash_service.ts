@@ -1,7 +1,10 @@
 import { OnStart, Service } from '@flamework/core';
+import { CharacterService } from 'server/features/player/services/character_service';
 import { PlayerService } from 'server/features/player/services/player_service';
+import { CollisionService } from 'server/shared/services/collision_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { PlayerSignals } from 'server/signals/player_signal';
+import { CollisionGroup } from 'shared/constants/collision_group';
 import { isR15CharacterModel } from 'shared/utils/character';
 import { DashState } from '../utils/dash';
 
@@ -11,7 +14,10 @@ import { DashState } from '../utils/dash';
 export class DashService implements OnStart {
 	private dashStates: Map<Player, DashState> = new Map();
 
-	constructor(private playerService: PlayerService) {}
+	constructor(
+		private playerService: PlayerService,
+		private collisionService: CollisionService,
+	) {}
 
 	public onStart(): void {
 		ServerEvents.combat.dash.connect((player) => {
@@ -32,6 +38,9 @@ export class DashService implements OnStart {
 		if (!character) return;
 
 		if (!isR15CharacterModel(character)) return;
+
+		// set the character's collision group to Invincible
+		this.collisionService.setModelCollisionGroup(character, CollisionGroup.Invincible);
 
 		print('Dash performed');
 		PlayerSignals.onPlayerDashed.Fire(player);

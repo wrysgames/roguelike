@@ -1,10 +1,12 @@
 import { OnStart, Service } from '@flamework/core';
 import { Character } from 'shared/types/character';
 import { isCharacterModel } from 'shared/utils/character';
+import { JumpState } from '../types/jump_state';
 import { PlayerService } from './player_service';
 
 @Service()
 export class CharacterService implements OnStart {
+	private jumpStates: Map<Character, JumpState> = new Map();
 	private characterAddedCallbacks: ((character: Character, player: Player) => void)[] = [];
 
 	constructor(private playerService: PlayerService) {}
@@ -17,6 +19,10 @@ export class CharacterService implements OnStart {
 					task.spawn(callback, character, player);
 				});
 			});
+			player.CharacterRemoving.Connect((character) => {
+				if (!isCharacterModel(character)) return;
+				this.jumpStates.delete(character);
+			});
 		});
 	}
 
@@ -24,5 +30,32 @@ export class CharacterService implements OnStart {
 		if (!this.characterAddedCallbacks.includes(callback)) {
 			this.characterAddedCallbacks.push(callback);
 		}
+	}
+
+	public enableJump(character: Character): void {
+		const state = this.jumpStates.get(character);
+		if (!state) {
+			character.Humanoid.JumpPower = 50;
+			character.Humanoid.JumpHeight = 7.2;
+		} else {
+			character.Humanoid.JumpPower = state.jumpPower;
+			character.Humanoid.JumpHeight = state.jumpHeight;
+		}
+	}
+
+	public disableJump(character: Character): void {
+		const state = this.jumpStates.get(character);
+		if (!state) {
+			this.jumpStates.set(character, {
+				jumpHeight: character.Humanoid.JumpHeight,
+				jumpPower: character.Humanoid.JumpPower,
+			});
+		} else {
+			state.jumpHeight = character.Humanoid.JumpHeight;
+			state.jumpPower = character.Humanoid.JumpPower;
+		}
+
+		character.Humanoid.JumpPower = 0;
+		character.Humanoid.JumpHeight = 0;
 	}
 }
