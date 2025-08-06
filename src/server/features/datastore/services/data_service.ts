@@ -84,7 +84,7 @@ export class DataService implements OnStart {
 					return undefined;
 			}
 
-			PlayerSignals.onItemEquipped.Fire(player, instance.instanceId);
+			PlayerSignals.onItemEquipped.Fire(player, instance);
 			return instance;
 		} else {
 			warn('[DataService]: Inventory not found');
@@ -135,7 +135,11 @@ export class DataService implements OnStart {
 		return deepCopy(profile?.Data.inventory);
 	}
 
-	private getInstanceFromPlayerInventory(player: Player, instanceId: string): StoredItemData | undefined {
+	public generateInstanceId(): string {
+		return HttpService.GenerateGUID(false);
+	}
+
+	public getInstanceFromPlayerInventory(player: Player, instanceId: string): StoredItemData | undefined {
 		const inventory = this.getInventory(player);
 		if (!inventory) return undefined;
 		const instance = inventory.find((item) => item.instanceId === instanceId);
@@ -151,9 +155,5 @@ export class DataService implements OnStart {
 			data.equipped.armor = normalizeStoredItemData(data.equipped.armor);
 		}
 		data.inventory = data.inventory.map(normalizeStoredItemData);
-	}
-
-	public generateInstanceId(): string {
-		return HttpService.GenerateGUID(false);
 	}
 }

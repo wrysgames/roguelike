@@ -18,5 +18,21 @@ export class CombatController implements OnStart {
 				ClientEvents.combat.dash.fire();
 			},
 		});
+
+		this.inputManager.bindAction({
+			name: 'attack',
+			inputTypes: [Enum.UserInputType.MouseButton1],
+			callback: () => {
+				ClientEvents.combat.attack.fire();
+			},
+		});
+
+		this.inputManager.bindAction({
+			name: 'attack',
+			keys: [Enum.KeyCode.E],
+			callback: () => {
+				ClientEvents.combat.equip.fire('1');
+			},
+		});
 	}
 }

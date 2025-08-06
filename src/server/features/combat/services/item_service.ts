@@ -2,9 +2,11 @@ import { OnStart, Service } from '@flamework/core';
 import ObjectUtils from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
 import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
+import { ServerEvents } from 'server/signals/networking/events';
 import { PlayerSignals } from 'server/signals/player_signal';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { Armor, BaseItem, InferStats, InferTags } from 'shared/features/inventory/types';
+import { getItemType } from 'shared/features/inventory/utils/get_item_type';
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
@@ -12,7 +14,14 @@ export class ItemService implements OnStart {
 	constructor(private dataService: DataService) {}
 
 	public onStart(): void {
-		PlayerSignals.onPlayerDataLoaded.Connect(() => undefined);
+		ServerEvents.combat.equip.connect((player, instanceId) => {
+			const item = this.dataService.getInstanceFromPlayerInventory(player, instanceId);
+			if (!item) return;
+			const itemType = getItemType(item.id);
+			if (!itemType) return;
+			print(`Equipping ${item.id} to slot: ${itemType} for player ${player.DisplayName}`);
+			this.dataService.equipItem(player, instanceId, itemType);
+		});
 	}
 
 	public equipWeapon(player: Player, instanceId: string): void {
