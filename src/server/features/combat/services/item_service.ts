@@ -3,9 +3,11 @@ import ObjectUtils from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
 import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
 import { ServerEvents } from 'server/signals/networking/events';
+import { SWORD_ATTACK_ANIMATION_SET } from 'shared/constants/animations/attack_animation_sets/sword';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { getWeaponById } from 'shared/features/inventory/data/weapons';
-import { Armor, BaseItem, InferStats, InferTags } from 'shared/features/inventory/types';
+import { Armor, BaseItem, InferStats, InferTags, Weapon } from 'shared/features/inventory/types';
+import { AttackAnimation } from 'shared/types/animation';
 import { isCharacterModel } from 'shared/utils/character';
 import { deepClone } from 'shared/utils/instance';
 
@@ -49,8 +51,12 @@ export class ItemService implements OnStart {
 		}
 	}
 
-	public getEquippedWeapon(player: Player): Readonly<StoredItemData> | undefined {
-		return this.dataService.getEquippedItem(player, 'weapon');
+	public getEquippedWeapon(player: Player): Readonly<Weapon> | undefined {
+		const weapon = this.dataService.getEquippedItem(player, 'weapon')?.id;
+		if (weapon) {
+			return getWeaponById(weapon);
+		}
+		return undefined;
 	}
 
 	public getEquippedArmor(player: Player): Readonly<Armor> | undefined {
@@ -82,6 +88,16 @@ export class ItemService implements OnStart {
 
 		if (level > 1) scaledStats = this.scaleWithLevel(scaledStats, levelMultiplier);
 		return scaledStats;
+	}
+
+	public getWeaponAttackAnimationSet(weapon: Readonly<Weapon>): AttackAnimation[] {
+		switch (weapon.visualType) {
+			case 'sword': {
+				return SWORD_ATTACK_ANIMATION_SET;
+			}
+			default:
+				return [];
+		}
 	}
 
 	private applyUpgrade<T extends defined>(base: T, upgrade: Partial<T>): T {

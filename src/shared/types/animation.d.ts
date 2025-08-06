@@ -5,8 +5,13 @@ interface KeyframeRange {
 
 export interface AttackAnimation {
 	animationId: string;
-	keyframes: {
-		hitbox: Required<KeyframeRange>;
+	damageMultiplier?: number;
+	keyframes?: {
+		hitbox?: KeyframeRange;
 		combo?: KeyframeRange;
+	};
+	sounds?: {
+		attack?: string;
+		hitConfirmed?: string;
 	};
 }
