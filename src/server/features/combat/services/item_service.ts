@@ -4,7 +4,9 @@ import { DataService } from 'server/features/datastore/services/data_service';
 import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
 import { ServerEvents } from 'server/signals/networking/events';
 import { getArmorById } from 'shared/features/inventory/data/armor';
+import { getWeaponById } from 'shared/features/inventory/data/weapons';
 import { Armor, BaseItem, InferStats, InferTags } from 'shared/features/inventory/types';
+import { isCharacterModel } from 'shared/utils/character';
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
@@ -16,12 +18,35 @@ export class ItemService implements OnStart {
 			const item = this.dataService.getInstanceFromPlayerInventory(player, instanceId);
 			if (!item) return;
 			print(`Equipping ${item.id} to slot: ${item.type} for player ${player.DisplayName}`);
-			this.dataService.equipItem(player, instanceId);
+			this.equipItem(player, instanceId);
 		});
 	}
 
 	public equipItem(player: Player, instanceId: string): void {
-		this.dataService.equipItem(player, instanceId);
+		const character = player.Character;
+		if (!character) return;
+		if (!isCharacterModel(character)) return;
+
+		const item = this.dataService.equipItem(player, instanceId);
+		if (!item) return;
+
+		// Visually attach it to the player's character
+		switch (item.type) {
+			case 'weapon': {
+				const weapon = getWeaponById(item.id);
+				if (!weapon) return;
+
+				const model = weapon.model;
+				if (!model) break;
+
+				// weld the model to the player's hand
+				break;
+			}
+			case 'armor':
+				break;
+			default:
+				return;
+		}
 	}
 
 	public getEquippedWeapon(player: Player): Readonly<StoredItemData> | undefined {
