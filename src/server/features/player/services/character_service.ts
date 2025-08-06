@@ -69,4 +69,11 @@ export class CharacterService implements OnStart {
 			return true;
 		return false;
 	}
+
+	public isMovingBackwards(character: Character): boolean {
+		const direction = character.Humanoid.MoveDirection;
+		const facing = character.HumanoidRootPart.CFrame.LookVector;
+		const moveDirection = direction.Unit;
+		return moveDirection.Dot(facing) < -0.5;
+	}
 }
