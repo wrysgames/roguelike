@@ -6,7 +6,6 @@ import { ServerEvents } from 'server/signals/networking/events';
 import { PlayerSignals } from 'server/signals/player_signal';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { Armor, BaseItem, InferStats, InferTags } from 'shared/features/inventory/types';
-import { getItemType } from 'shared/features/inventory/utils/get_item_type';
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
@@ -17,19 +16,13 @@ export class ItemService implements OnStart {
 		ServerEvents.combat.equip.connect((player, instanceId) => {
 			const item = this.dataService.getInstanceFromPlayerInventory(player, instanceId);
 			if (!item) return;
-			const itemType = getItemType(item.id);
-			if (!itemType) return;
-			print(`Equipping ${item.id} to slot: ${itemType} for player ${player.DisplayName}`);
-			this.dataService.equipItem(player, instanceId, itemType);
+			print(`Equipping ${item.id} to slot: ${item.type} for player ${player.DisplayName}`);
+			this.dataService.equipItem(player, instanceId);
 		});
 	}
 
-	public equipWeapon(player: Player, instanceId: string): void {
-		this.dataService.equipWeapon(player, instanceId);
-	}
-
-	public equipArmor(player: Player, instanceId: string): void {
-		this.dataService.equipArmor(player, instanceId);
+	public equipItem(player: Player, instanceId: string): void {
+		this.dataService.equipItem(player, instanceId);
 	}
 
 	public getEquippedWeapon(player: Player): Readonly<StoredItemData> | undefined {

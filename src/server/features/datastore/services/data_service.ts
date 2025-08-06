@@ -64,7 +64,7 @@ export class DataService implements OnStart {
 		}
 	}
 
-	public equipItem(player: Player, instanceId: string, slot: ItemType): StoredItemData | undefined {
+	public equipItem(player: Player, instanceId: string): StoredItemData | undefined {
 		const inventory = this.getInventory(player);
 		if (inventory) {
 			// check if the instance is in the inventory
@@ -73,16 +73,7 @@ export class DataService implements OnStart {
 			const profile = this.profiles.get(player);
 			if (!profile) return undefined;
 
-			switch (slot) {
-				case 'weapon':
-					profile.Data.equipped.weapon = instance;
-					break;
-				case 'armor':
-					profile.Data.equipped.armor = instance;
-					break;
-				default:
-					return undefined;
-			}
+			profile.Data.equipped[instance.type] = instance;
 
 			PlayerSignals.onItemEquipped.Fire(player, instance);
 			return instance;
@@ -101,14 +92,6 @@ export class DataService implements OnStart {
 
 		profile.Data.equipped[slot] = undefined;
 		PlayerSignals.onItemUnequipped.Fire(player, item.instanceId);
-	}
-
-	public equipWeapon(player: Player, instanceId: string): StoredItemData | undefined {
-		return this.equipItem(player, instanceId, 'weapon');
-	}
-
-	public equipArmor(player: Player, instanceId: string): StoredItemData | undefined {
-		return this.equipItem(player, instanceId, 'armor');
 	}
 
 	public getEquippedWeapon(player: Player): StoredItemData | undefined {
@@ -148,12 +131,10 @@ export class DataService implements OnStart {
 	}
 
 	private normalizePlayerData(data: PlayerSaveData): void {
-		if (data.equipped.weapon) {
-			data.equipped.weapon = normalizeStoredItemData(data.equipped.weapon);
-		}
-		if (data.equipped.armor) {
-			data.equipped.armor = normalizeStoredItemData(data.equipped.armor);
-		}
+		(data.equipped as Map<ItemType, StoredItemData>).forEach((item, key) => {
+			data.equipped[key] = normalizeStoredItemData(item);
+		});
+
 		data.inventory = data.inventory.map(normalizeStoredItemData);
 	}
 }

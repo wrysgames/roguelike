@@ -2,6 +2,7 @@ import type { ItemType } from 'shared/features/inventory/types';
 
 export interface StoredItemData {
 	instanceId: string;
+	type: ItemType;
 	id: string; // item ID
 	xp?: number;
 	level?: number;
