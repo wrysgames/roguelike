@@ -56,21 +56,33 @@ export class DashService implements OnStart {
 		state.isDashing = true;
 		state.isDashCooldownActive = true;
 
-		const characterIsInAir = this.characterService.isInAir(character);
+		const isCharacterInAir = this.characterService.isInAir(character);
+		const isDashingBackwards = this.characterService.isMovingBackwards(character);
+
 		ServerEvents.vfx.spawnDashParticles.broadcast(
 			humanoidRootPart,
 			this.characterService.getMoveDirectionCFrame(character),
-			characterIsInAir,
+			isCharacterInAir,
 		);
+
+		// play the animation
+		const dashAnimationId = isDashingBackwards
+			? 'rbxassetid://87023280965723'
+			: isCharacterInAir
+				? 'rbxassetid://81847735907464'
+				: 'rbxassetid://116300596660463';
+		const animationTrack = this.characterService.loadAnimation(character, dashAnimationId);
+		animationTrack.Ended.Once(() => animationTrack.Destroy());
+		animationTrack.Play();
 
 		let direction = humanoid.MoveDirection;
 		if (direction.Magnitude === 0) direction = humanoidRootPart.CFrame.LookVector;
 
-		const dashSpeedMultiplier = characterIsInAir ? 2 : 1;
+		const dashSpeedMultiplier = isCharacterInAir ? 2 : 1;
 		const dashVelocity = direction.mul(DASH_SPEED * dashSpeedMultiplier);
 
-		const velocity = characterIsInAir ? new Vector3(dashVelocity.X, 0, dashVelocity.Z) : dashVelocity;
-		const maxForce = characterIsInAir ? new Vector3(1e5, 1e5, 1e5) : new Vector3(1e5, 0, 1e5);
+		const velocity = isCharacterInAir ? new Vector3(dashVelocity.X, 0, dashVelocity.Z) : dashVelocity;
+		const maxForce = isCharacterInAir ? new Vector3(1e5, 1e5, 1e5) : new Vector3(1e5, 0, 1e5);
 
 		this.applyDashVelocity(
 			humanoidRootPart,
@@ -78,7 +90,7 @@ export class DashService implements OnStart {
 				velocity,
 				maxForce,
 				duration: DASH_DURATION,
-				shouldDecelerate: !characterIsInAir,
+				shouldDecelerate: !isCharacterInAir,
 			},
 			() => {
 				state.isDashing = false;
