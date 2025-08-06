@@ -50,11 +50,11 @@ export class ItemService implements OnStart {
 	}
 
 	public getEquippedWeapon(player: Player): Readonly<StoredItemData> | undefined {
-		return this.dataService.getEquippedWeapon(player);
+		return this.dataService.getEquippedItem(player, 'weapon');
 	}
 
 	public getEquippedArmor(player: Player): Readonly<Armor> | undefined {
-		const armorId = this.dataService.getEquippedArmor(player)?.id;
+		const armorId = this.dataService.getEquippedItem(player, 'armor')?.id;
 		if (armorId) {
 			return getArmorById(armorId);
 		}

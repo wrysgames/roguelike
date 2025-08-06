@@ -93,20 +93,12 @@ export class DataService implements OnStart {
 		PlayerSignals.onItemUnequipped.Fire(player, item.instanceId);
 	}
 
-	public getEquippedWeapon(player: Player): StoredItemData | undefined {
+	public getEquippedItem(player: Player, slot: ItemType): StoredItemData | undefined {
 		const profile = this.profiles.get(player);
 		if (!profile) return undefined;
-		const weapon = profile.Data.equipped.weapon;
-		if (!weapon) return undefined;
-		return deepCopy(weapon);
-	}
-
-	public getEquippedArmor(player: Player): StoredItemData | undefined {
-		const profile = this.profiles.get(player);
-		if (!profile) return undefined;
-		const armor = profile.Data.equipped.armor;
-		if (!armor) return undefined;
-		return deepCopy(armor);
+		const item = profile.Data.equipped[slot];
+		if (!item) return undefined;
+		return deepCopy(item);
 	}
 
 	public getInventory(player: Player): StoredItemData[] | undefined {
