@@ -23,6 +23,7 @@ export interface WeaponStats {
 export type WeaponUpgrade = BaseUpgrade<WeaponStats>;
 
 export interface WeaponModel extends Model {
+	Highlight: Highlight;
 	Handle: BasePart & {
 		Hitboxes: Instance;
 		RightGripAttachment: Attachment;
@@ -35,11 +36,3 @@ export interface Weapon extends BaseItem<WeaponStats, WeaponTag> {
 	visualType: WeaponVisualType;
 	model?: WeaponModel;
 }
-
-export type DeepReadonly<T> = T extends (...args: defined[]) => defined
-	? T
-	: T extends Array<infer U>
-		? ReadonlyArray<DeepReadonly<U>>
-		: T extends object
-			? { readonly [K in keyof T]: DeepReadonly<T[K]> }
-			: T;
