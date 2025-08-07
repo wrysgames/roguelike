@@ -2,18 +2,22 @@ import { OnStart, Service } from '@flamework/core';
 import ObjectUtils from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
 import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
+import { CharacterService } from 'server/features/player/services/character_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { SWORD_ATTACK_ANIMATION_SET } from 'shared/constants/animations/attack_animation_sets/sword';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { getWeaponById } from 'shared/features/inventory/data/weapons';
 import { Armor, BaseItem, InferStats, InferTags, Weapon } from 'shared/features/inventory/types';
 import { AttackAnimation } from 'shared/types/animation';
-import { isCharacterModel } from 'shared/utils/character';
+import { isCharacterModel, isR15CharacterModel } from 'shared/utils/character';
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
 export class ItemService implements OnStart {
-	constructor(private dataService: DataService) {}
+	constructor(
+		private dataService: DataService,
+		private characterService: CharacterService,
+	) {}
 
 	public onStart(): void {
 		ServerEvents.combat.equip.connect((player, instanceId) => {
@@ -35,6 +39,7 @@ export class ItemService implements OnStart {
 		// Visually attach it to the player's character
 		switch (item.type) {
 			case 'weapon': {
+				if (!isR15CharacterModel(character)) return;
 				const weapon = getWeaponById(item.id);
 				if (!weapon) return;
 
@@ -42,6 +47,7 @@ export class ItemService implements OnStart {
 				if (!model) break;
 
 				// weld the model to the player's hand
+				this.characterService.mountPartToRightHand(character, model.Handle);
 				break;
 			}
 			case 'armor':

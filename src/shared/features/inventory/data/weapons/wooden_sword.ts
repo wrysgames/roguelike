@@ -1,3 +1,4 @@
+import { ReplicatedStorage } from '@rbxts/services';
 import { WeaponBuilder } from '../../builders/weapon_builder';
 
 const woodenSword = new WeaponBuilder('wooden_sword', 'Wooden Sword', 'common')
@@ -18,6 +19,7 @@ const woodenSword = new WeaponBuilder('wooden_sword', 'Wooden Sword', 'common')
 		stats: { critRate: 0.1, damage: 8 },
 		description: '+10% base damage',
 	})
+	.withModel(ReplicatedStorage.weapons.FindFirstChild(script.Name))
 	.build();
 
 export = woodenSword;

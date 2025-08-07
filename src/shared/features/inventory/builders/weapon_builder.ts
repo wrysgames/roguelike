@@ -17,7 +17,7 @@ export class WeaponBuilder extends ItemBuilder<Weapon> {
 		return this;
 	}
 
-	withModel(model: Instance): this {
+	withModel(model?: Instance): this {
 		if (!model) return this;
 		if (!isWeaponModelValid(model)) {
 			warn(`[WeaponBuilder]: Item ${this.item.id} had invalid model`);
