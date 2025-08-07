@@ -7,7 +7,7 @@ import { PlayerService } from './player_service';
 @Service()
 export class CharacterService implements OnStart {
 	private characterStates: Map<Character, CharacterState> = new Map();
-	private animationFlyweight: Map<string, Animation> = new Map();
+	private animationFlyweight: Map<string, AnimationTrack> = new Map();
 	private characterAddedCallbacks: ((character: Character, player: Player) => void)[] = [];
 
 	constructor(private playerService: PlayerService) {}
@@ -98,14 +98,15 @@ export class CharacterService implements OnStart {
 		const animator = character.Humanoid.Animator;
 
 		// create a new animation
-		let animation = this.animationFlyweight.get(animationId);
-		if (!animation) {
-			animation = new Instance('Animation');
+		let animationTrack = this.animationFlyweight.get(animationId);
+		if (!animationTrack) {
+			const animation = new Instance('Animation');
 			animation.AnimationId = animationId;
-			this.animationFlyweight.set(animationId, animation);
+			const track = animator.LoadAnimation(animation);
+			this.animationFlyweight.set(animationId, track);
+			return track;
 		}
 
-		const animationTrack = animator.LoadAnimation(animation);
 		return animationTrack;
 	}
 }

@@ -1,4 +1,5 @@
 import { OnStart, Service } from '@flamework/core';
+import { RunService } from '@rbxts/services';
 import { CharacterService } from 'server/features/player/services/character_service';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { ServerEvents } from 'server/signals/networking/events';
@@ -13,6 +14,7 @@ const COMBO_COOLDOWN = 0.5;
 
 const DEFAULT_HITBOX_START_KEYFRAME_NAME = 'Hit';
 const DEFAULT_COMBO_START_KEYFRAME_NAME = 'Combo';
+const DEFAULT_COMBO_END_KEYFRAME_NAME = 'ComboEnd';
 
 @Service()
 export class CombatService implements OnStart {
@@ -97,6 +99,11 @@ export class CombatService implements OnStart {
 			.Once(() => {
 				state.isComboWindowOpen = true;
 			});
+		if (animation.keyframes?.combo?.end) {
+			track.GetMarkerReachedSignal(animation.keyframes.combo.end ?? DEFAULT_COMBO_END_KEYFRAME_NAME).Once(() => {
+				state.isComboWindowOpen = false;
+			});
+		}
 		track.Stopped.Once(() => {
 			state.isAttacking = false;
 			state.currentAttackAnimation = undefined;
@@ -112,12 +119,18 @@ export class CombatService implements OnStart {
 	private enableHitbox(player: Player): void {
 		const state = this.getAttackState(player);
 		if (state.isHitboxActive) return;
+		if (state.hitboxConnection) return;
+
+		state.hitboxConnection = RunService.Heartbeat.Connect(() => {
+			if (!state.currentAttackAnimation) return this.disableHitbox(player);
+		});
 	}
 
 	private disableHitbox(player: Player) {
 		const state = this.getAttackState(player);
 		if (!state.isHitboxActive) return;
 		if (state.hitboxConnection) state.hitboxConnection.Disconnect();
+		state.hitboxConnection = undefined;
 		state.isHitboxActive = false;
 	}
 

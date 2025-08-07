@@ -1,4 +1,5 @@
 import { Weapon } from 'shared/features/inventory/types';
+import { isWeaponModelValid } from '../utils/validate_weapon_model';
 import { ItemBuilder } from './item_builder';
 
 export class WeaponBuilder extends ItemBuilder<Weapon> {
@@ -16,7 +17,12 @@ export class WeaponBuilder extends ItemBuilder<Weapon> {
 		return this;
 	}
 
-	withModel(model: Weapon['model']): this {
+	withModel(model: Instance): this {
+		if (!model) return this;
+		if (!isWeaponModelValid(model)) {
+			warn(`[WeaponBuilder]: Item ${this.item.id} had invalid model`);
+			return this;
+		}
 		this.item.model = model;
 		return this;
 	}
@@ -24,7 +30,7 @@ export class WeaponBuilder extends ItemBuilder<Weapon> {
 	override validate(): asserts this is { item: Weapon } {
 		super.validate();
 		if (!this.item.weaponType) {
-			throw `Missing visualType property`;
+			throw `Missing weaponType property`;
 		}
 		if (!this.item.visualType) {
 			throw `Missing visualType property`;

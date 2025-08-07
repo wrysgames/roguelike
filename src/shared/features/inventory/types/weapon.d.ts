@@ -24,10 +24,9 @@ export type WeaponUpgrade = BaseUpgrade<WeaponStats>;
 
 export interface WeaponModel extends Model {
 	Handle: BasePart & {
-		Hitboxes: Folder;
+		Hitboxes: Instance;
 		RightGripAttachment: Attachment;
 	};
-	TipAttachment: ObjectValue;
 }
 
 export interface Weapon extends BaseItem<WeaponStats, WeaponTag> {
