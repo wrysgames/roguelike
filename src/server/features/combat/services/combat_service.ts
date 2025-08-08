@@ -101,7 +101,6 @@ export class CombatService implements OnStart {
 					SWORD_SLASH_SOUND_ID,
 					character.HumanoidRootPart,
 					{
-						PlaybackSpeed: state.comboIndex,
 						Volume: 1,
 					},
 					true,
@@ -184,6 +183,7 @@ export class CombatService implements OnStart {
 							hitbox,
 							{
 								PlaybackSpeed: (isCrit ? math.random(7, 9) : math.random(10, 14)) / 10,
+								Volume: 1,
 							},
 							true,
 						);
