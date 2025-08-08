@@ -48,7 +48,6 @@ export class ParticleController implements OnStart {
 				if (emitDelay !== undefined && !typeIs(emitDelay, 'number')) continue;
 
 				const doEmit = () => {
-					print(emitCount ?? DEFAULT_EMIT_COUNT);
 					particle.Emit(emitCount ?? DEFAULT_EMIT_COUNT);
 					task.delay(particle.Lifetime.Max, () => {
 						particle.Destroy();

@@ -2,7 +2,7 @@ import { Character } from 'shared/types/character';
 
 export class AnimationManager {
 	private character: Character;
-	private animationCache: Map<string, AnimationTrack> = new Map();
+	private animationCache: Map<string, Animation> = new Map();
 
 	constructor(character: Character) {
 		this.character = character;
@@ -11,35 +11,27 @@ export class AnimationManager {
 	public loadAnimation(animationId: string): AnimationTrack {
 		const animator = this.character.Humanoid.Animator;
 
-		let animationTrack = this.animationCache.get(animationId);
-		if (!animationTrack) {
-			const animation = new Instance('Animation');
+		let animation = this.animationCache.get(animationId);
+		if (!animation) {
+			animation = new Instance('Animation');
 			animation.AnimationId = animationId;
-			const track = animator.LoadAnimation(animation);
-			this.animationCache.set(animationId, track);
-			animation.Destroy();
-			return track;
+			this.animationCache.set(animationId, animation);
 		}
-
-		return animationTrack;
+		return animator.LoadAnimation(animation);
 	}
 
 	public preloadAnimations(animationIds: string[]) {
-		let numPreloaded = 0;
-
 		animationIds.forEach((animationId) => {
 			if (this.animationCache.has(animationId)) return;
 
 			const track = this.loadAnimation(animationId);
-
 			track.Play();
 			track.AdjustSpeed(0);
-			this.animationCache.set(animationId, track);
 
-			task.defer(() => track.Stop()); // Stop after a frame
-			numPreloaded++;
+			task.defer(() => {
+				track.Stop();
+				track.AdjustSpeed(1);
+			}); // Stop after a frame
 		});
-
-		print(`Preloaded ${numPreloaded} animations for ${this.character.Humanoid.DisplayName}`);
 	}
 }

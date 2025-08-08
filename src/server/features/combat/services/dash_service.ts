@@ -1,7 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
 import { RunService } from '@rbxts/services';
 import { CharacterService } from 'server/features/player/services/character_service';
-import { PlayerService } from 'server/features/player/services/player_service';
 import { CollisionService } from 'server/shared/services/collision_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { PlayerSignals } from 'server/signals/player_signal';
@@ -14,7 +13,6 @@ import { CollisionGroup } from 'shared/constants/collision_group';
 import { isCharacterModel } from 'shared/utils/character';
 import { DashState } from '../utils/dash';
 import { SharedStateManager } from '../utils/shared_state_manager';
-import { CombatService } from './combat_service';
 
 const DASH_COOLDOWN = 0.75;
 const DASH_DURATION = 0.35; // seconds
@@ -30,6 +28,13 @@ export class DashService implements OnStart {
 	public onStart(): void {
 		ServerEvents.combat.dash.connect((player) => {
 			this.performDash(player);
+		});
+		this.characterService.addCharacterAddedCallback((character) => {
+			this.characterService.preloadAnimations(character, [
+				DASH_AIR_ANIMATION_ID,
+				DASH_BACK_ANIMATION_ID,
+				DASH_GROUND_ANIMATION_ID,
+			]);
 		});
 	}
 
