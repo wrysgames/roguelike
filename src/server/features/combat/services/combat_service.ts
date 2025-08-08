@@ -2,13 +2,13 @@ import { OnStart, Service } from '@flamework/core';
 import { RunService, Workspace } from '@rbxts/services';
 import { CharacterService } from 'server/features/player/services/character_service';
 import { PlayerService } from 'server/features/player/services/player_service';
+import { SoundService } from 'server/shared/services/sound_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { AttackAnimation } from 'shared/types/animation';
 import { getCharacterFromPart, isCharacterModel } from 'shared/utils/character';
 import { getChildrenOfType } from 'shared/utils/instance';
 import { AttackState } from '../utils/attack';
 import { SharedStateManager } from '../utils/shared_state_manager';
-import { DashService } from './dash_service';
 import { ItemService } from './item_service';
 
 const COMBO_COOLDOWN = 0.5;
@@ -22,6 +22,7 @@ export class CombatService implements OnStart {
 	constructor(
 		private characterService: CharacterService,
 		private itemService: ItemService,
+		private soundService: SoundService,
 	) {}
 
 	public onStart(): void {
@@ -133,11 +134,14 @@ export class CombatService implements OnStart {
 		const charactersHitMap: Map<Instance, boolean> = new Map();
 		const overlapParams = this.getOverlapParams(character ? [character] : []);
 
+		let didProcessHit = false;
+
 		state.hitboxConnection = RunService.Heartbeat.Connect(() => {
 			if (!state.currentAttackAnimation) return this.disableHitbox(player);
 			if (!weaponModel) return;
 
 			const hitboxAttachments = getChildrenOfType(weaponModel.Handle.Hitboxes, 'Attachment');
+
 			for (const hitbox of hitboxAttachments) {
 				const partsHit = Workspace.GetPartBoundsInRadius(hitbox.WorldPosition, 2, overlapParams);
 
@@ -145,17 +149,27 @@ export class CombatService implements OnStart {
 					const characterHit = getCharacterFromPart(part);
 					if (!characterHit) continue;
 					if (charactersHitMap.has(characterHit)) continue;
+					if (characterHit.Humanoid.Health === 0) continue;
 
 					charactersHitMap.set(characterHit, true);
 					const isCrit = math.random() < weaponStats.critRate;
-					if (characterHit.Humanoid.Health > 0) {
-						const damage =
-							weaponStats.damage *
-							(state.currentAttackAnimation.damageMultiplier ?? 1) *
-							(isCrit ? (weaponStats.critDamageMultiplier ?? 2) : 1);
-						characterHit.Humanoid.TakeDamage(damage);
+					const damage =
+						weaponStats.damage *
+						(state.currentAttackAnimation.damageMultiplier ?? 1) *
+						(isCrit ? (weaponStats.critDamageMultiplier ?? 2) : 1);
+					characterHit.Humanoid.TakeDamage(damage);
 
-						// VFX Here
+					// VFX Here
+					if (!didProcessHit) {
+						didProcessHit = true;
+						this.soundService.makeSound(
+							isCrit ? `` : ``,
+							hitbox,
+							{
+								PlaybackSpeed: isCrit ? math.random(7, 9) / 10 : math.random(10, 14) / 10,
+							},
+							true,
+						);
 					}
 				}
 			}
