@@ -1,14 +1,15 @@
 import { OnStart, Service } from '@flamework/core';
-import { WeaponModel } from 'shared/features/inventory/types';
 import { Character, R15Character } from 'shared/types/character';
 import { isCharacterModel } from 'shared/utils/character';
+import { AnimationManager } from '../utils/animation_manager';
 import { CharacterState } from '../utils/character_state';
 import { PlayerService } from './player_service';
 
 @Service()
 export class CharacterService implements OnStart {
 	private characterStates: Map<Character, CharacterState> = new Map();
-	private animationFlyweight: Map<string, AnimationTrack> = new Map();
+	private characterAnimations: Map<Character, AnimationManager> = new Map();
+
 	private characterAddedCallbacks: ((character: Character, player: Player) => void)[] = [];
 
 	constructor(private playerService: PlayerService) {}
@@ -17,12 +18,14 @@ export class CharacterService implements OnStart {
 		this.playerService.addPlayerAddedCallback((player) => {
 			player.CharacterAdded.Connect((character) => {
 				if (!isCharacterModel(character)) return;
+				this.characterAnimations.set(character, new AnimationManager(character));
 				this.characterAddedCallbacks.forEach((callback) => {
 					task.spawn(callback, character, player);
 				});
 			});
 			player.CharacterRemoving.Connect((character) => {
 				if (!isCharacterModel(character)) return;
+				this.characterAnimations.delete(character);
 				this.characterStates.delete(character);
 			});
 		});
@@ -96,19 +99,8 @@ export class CharacterService implements OnStart {
 	}
 
 	public loadAnimation(character: Character, animationId: string): AnimationTrack {
-		const animator = character.Humanoid.Animator;
-
-		// create a new animation
-		let animationTrack = this.animationFlyweight.get(animationId);
-		if (!animationTrack) {
-			const animation = new Instance('Animation');
-			animation.AnimationId = animationId;
-			const track = animator.LoadAnimation(animation);
-			this.animationFlyweight.set(animationId, track);
-			return track;
-		}
-
-		return animationTrack;
+		let animationManager = this.getCharacterAnimationManager(character);
+		return animationManager.loadAnimation(animationId);
 	}
 
 	public mountPartToRightHand(character: R15Character, part: BasePart, cframe?: CFrame): Motor6D {
@@ -124,5 +116,20 @@ export class CharacterService implements OnStart {
 		if (cframe) motor.C1 = cframe;
 
 		return motor;
+	}
+
+	public preloadAnimations(character: Character, animationIds: string[]) {
+		let animationManager = this.getCharacterAnimationManager(character);
+		return animationManager.preloadAnimations(animationIds);
+	}
+
+	private getCharacterAnimationManager(character: Character): AnimationManager {
+		const characterAnimationManager = this.characterAnimations.get(character);
+		if (!characterAnimationManager) {
+			const newManager = new AnimationManager(character);
+			this.characterAnimations.set(character, newManager);
+			return newManager;
+		}
+		return characterAnimationManager;
 	}
 }

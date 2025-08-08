@@ -12,15 +12,17 @@ export class ParticleController implements OnStart {
 			// DO SOMETHING
 		});
 		ClientEvents.vfx.spawnSlashParticles.connect((adornee: BasePart) => {
-			// DO SOMETHING
+			this.spawnSlashParticles(adornee);
 		});
 	}
 
 	public spawnSlashParticles(adornee: BasePart): void {
 		const vfxAttachment = ReplicatedStorage.vfx.combat.FindFirstChild('slash_fx');
+		print(vfxAttachment);
 		if (!vfxAttachment) return;
 
 		const clone = vfxAttachment.Clone();
+		clone.Parent = adornee;
 		this.emitParticlesInModel(clone).andThen(() => {
 			clone.Destroy();
 		});
@@ -46,6 +48,7 @@ export class ParticleController implements OnStart {
 				if (emitDelay !== undefined && !typeIs(emitDelay, 'number')) continue;
 
 				const doEmit = () => {
+					print(emitCount ?? DEFAULT_EMIT_COUNT);
 					particle.Emit(emitCount ?? DEFAULT_EMIT_COUNT);
 					task.delay(particle.Lifetime.Max, () => {
 						particle.Destroy();
