@@ -1,10 +1,11 @@
 import { OnStart, Service } from '@flamework/core';
-import { RunService } from '@rbxts/services';
+import { RunService, Workspace } from '@rbxts/services';
 import { CharacterService } from 'server/features/player/services/character_service';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { AttackAnimation } from 'shared/types/animation';
-import { isCharacterModel } from 'shared/utils/character';
+import { getCharacterFromPart, isCharacterModel } from 'shared/utils/character';
+import { getChildrenOfType } from 'shared/utils/instance';
 import { AttackState } from '../utils/attack';
 import { SharedStateManager } from '../utils/shared_state_manager';
 import { DashService } from './dash_service';
@@ -121,8 +122,43 @@ export class CombatService implements OnStart {
 		if (state.isHitboxActive) return;
 		if (state.hitboxConnection) return;
 
+		const character = player.Character;
+
+		const weapon = this.itemService.getEquippedWeapon(player);
+		const weaponModel = this.itemService.getEquippedWeaponModel(player);
+		if (!(weapon && weaponModel)) return;
+
+		const weaponStats = this.itemService.getItemStats(weapon, 1, 1);
+
+		const charactersHitMap: Map<Instance, boolean> = new Map();
+		const overlapParams = this.getOverlapParams(character ? [character] : []);
+
 		state.hitboxConnection = RunService.Heartbeat.Connect(() => {
 			if (!state.currentAttackAnimation) return this.disableHitbox(player);
+			if (!weaponModel) return;
+
+			const hitboxAttachments = getChildrenOfType(weaponModel.Handle.Hitboxes, 'Attachment');
+			for (const hitbox of hitboxAttachments) {
+				const partsHit = Workspace.GetPartBoundsInRadius(hitbox.WorldPosition, 2, overlapParams);
+
+				for (const part of partsHit) {
+					const characterHit = getCharacterFromPart(part);
+					if (!characterHit) continue;
+					if (charactersHitMap.has(characterHit)) continue;
+
+					charactersHitMap.set(characterHit, true);
+					const isCrit = math.random() < weaponStats.critRate;
+					if (characterHit.Humanoid.Health > 0) {
+						const damage =
+							weaponStats.damage *
+							(state.currentAttackAnimation.damageMultiplier ?? 1) *
+							(isCrit ? (weaponStats.critDamageMultiplier ?? 2) : 1);
+						characterHit.Humanoid.TakeDamage(damage);
+
+						// VFX Here
+					}
+				}
+			}
 		});
 	}
 
@@ -143,5 +179,12 @@ export class CombatService implements OnStart {
 
 	public getAttackState(player: Player): AttackState {
 		return SharedStateManager.getInstance().getAttackState(player);
+	}
+
+	private getOverlapParams(filterDescendants: Instance[]): OverlapParams {
+		const overlapParams = new OverlapParams();
+		overlapParams.FilterDescendantsInstances = filterDescendants ? filterDescendants : [];
+		overlapParams.FilterType = Enum.RaycastFilterType.Exclude;
+		return overlapParams;
 	}
 }

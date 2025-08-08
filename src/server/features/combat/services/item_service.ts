@@ -1,5 +1,5 @@
 import { OnStart, Service } from '@flamework/core';
-import ObjectUtils from '@rbxts/object-utils';
+import ObjectUtils, { deepCopy } from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
 import { CharacterService } from 'server/features/player/services/character_service';
 import { ServerEvents } from 'server/signals/networking/events';
@@ -10,7 +10,6 @@ import { getWeaponById } from 'shared/features/inventory/data/weapons';
 import { Armor, BaseItem, InferStats, InferTags, ItemType, Weapon, WeaponModel } from 'shared/features/inventory/types';
 import { AttackAnimation } from 'shared/types/animation';
 import { isCharacterModel, isR15CharacterModel } from 'shared/utils/character';
-import { deepClone } from 'shared/utils/instance';
 
 @Service()
 export class ItemService implements OnStart {
@@ -65,6 +64,10 @@ export class ItemService implements OnStart {
 		PlayerSignals.onItemUnequipped.Fire(player, slot);
 	}
 
+	public getEquippedWeaponModel(player: Player): WeaponModel | undefined {
+		return this.playerWeaponModels.get(player);
+	}
+
 	public getEquippedWeapon(player: Player): Readonly<Weapon> | undefined {
 		const weapon = this.dataService.getEquippedItem(player, 'weapon')?.id;
 		if (weapon) {
@@ -81,12 +84,12 @@ export class ItemService implements OnStart {
 		return undefined;
 	}
 
-	public calculateItemStats<T extends BaseItem<InferStats<T>, InferTags<T>>>(
+	public getItemStats<T extends BaseItem<InferStats<T>, InferTags<T>>>(
 		item: T,
 		tier: number,
 		level: number,
 	): InferStats<T> {
-		let scaledStats: InferStats<T> = deepClone(item.baseStats);
+		let scaledStats: InferStats<T> = deepCopy(item.baseStats);
 
 		if (item.upgrades) {
 			for (let i = 0; i < math.min(tier, item.maxTiers, item.upgrades.size()); i++) {
@@ -115,7 +118,7 @@ export class ItemService implements OnStart {
 	}
 
 	private applyUpgrade<T extends defined>(base: T, upgrade: Partial<T>): T {
-		const result = deepClone(base);
+		const result = deepCopy(base);
 		for (const [key] of ObjectUtils.entries(upgrade) as [keyof T, unknown][]) {
 			const baseVal = result[key];
 			const upVal = upgrade[key];
@@ -127,14 +130,14 @@ export class ItemService implements OnStart {
 			} else if (typeOf(baseVal) === 'table' && typeIs(upVal, 'table') && baseVal && upVal) {
 				result[key] = this.applyUpgrade(baseVal, upVal);
 			} else if (typeIs(upVal, 'table') && baseVal === undefined) {
-				result[key] = deepClone(upVal) as T[typeof key];
+				result[key] = deepCopy(upVal) as T[typeof key];
 			}
 		}
 		return result;
 	}
 
 	private scaleWithLevel<T extends defined>(stats: T, multiplier: number): T {
-		const result = deepClone(stats);
+		const result = deepCopy(stats);
 		for (const [key, val] of ObjectUtils.entries(result) as [keyof T, unknown][]) {
 			if (typeIs(val, 'number')) {
 				result[key] = (val * multiplier) as T[typeof key];

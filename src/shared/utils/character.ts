@@ -38,3 +38,10 @@ export function assertR15CharacterModel(character: Instance): asserts character 
 	const rightGripAttachment = rightHand.FindFirstChild('RightGripAttachment');
 	if (!rightGripAttachment) throw '[validateR15CharacterModel]: RightHand is missing RightGripAttachment';
 }
+
+export function getCharacterFromPart(part: BasePart): Character | undefined {
+	const model = part.FindFirstAncestorOfClass('Model');
+	if (!model) return undefined;
+	if (!isCharacterModel(model)) return undefined;
+	return model;
+}

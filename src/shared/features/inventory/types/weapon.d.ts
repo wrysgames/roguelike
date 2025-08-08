@@ -18,6 +18,7 @@ export interface WeaponStats {
 	critRate: number; // 0.0–1.0
 	knockback: number;
 	attackSpeed?: number; // hits/sec or time between swings
+	critDamageMultiplier?: number;
 }
 
 export type WeaponUpgrade = BaseUpgrade<WeaponStats>;
