@@ -1,19 +1,21 @@
 import { OnStart, Service } from '@flamework/core';
 import ObjectUtils from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
-import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
 import { CharacterService } from 'server/features/player/services/character_service';
 import { ServerEvents } from 'server/signals/networking/events';
+import { PlayerSignals } from 'server/signals/player_signal';
 import { SWORD_ATTACK_ANIMATION_SET } from 'shared/constants/animations/attack_animation_sets/sword';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { getWeaponById } from 'shared/features/inventory/data/weapons';
-import { Armor, BaseItem, InferStats, InferTags, Weapon } from 'shared/features/inventory/types';
+import { Armor, BaseItem, InferStats, InferTags, ItemType, Weapon, WeaponModel } from 'shared/features/inventory/types';
 import { AttackAnimation } from 'shared/types/animation';
 import { isCharacterModel, isR15CharacterModel } from 'shared/utils/character';
 import { deepClone } from 'shared/utils/instance';
 
 @Service()
 export class ItemService implements OnStart {
+	private playerWeaponModels: Map<Player, WeaponModel> = new Map();
+
 	constructor(
 		private dataService: DataService,
 		private characterService: CharacterService,
@@ -28,6 +30,10 @@ export class ItemService implements OnStart {
 		});
 	}
 
+	public isSlotEquipped(player: Player, slot: ItemType): boolean {
+		return this.dataService.getEquippedItem(player, slot) !== undefined;
+	}
+
 	public equipItem(player: Player, instanceId: string): void {
 		const character = player.Character;
 		if (!character) return;
@@ -39,22 +45,24 @@ export class ItemService implements OnStart {
 		// Visually attach it to the player's character
 		switch (item.type) {
 			case 'weapon': {
-				if (!isR15CharacterModel(character)) return;
-				const weapon = getWeaponById(item.id);
-				if (!weapon) return;
-
-				const model = weapon.model;
-				if (!model) break;
-
-				// weld the model to the player's hand
-				this.characterService.mountPartToRightHand(character, model.Handle);
+				this.equipWeaponModel(player, item.id);
 				break;
 			}
 			case 'armor':
 				break;
 			default:
-				return;
+				break;
 		}
+
+		PlayerSignals.onItemEquipped.Fire(player, item);
+	}
+
+	public unequipItem(player: Player, slot: ItemType): void {
+		this.dataService.unequipItem(player, slot);
+		if (slot === 'weapon' && this.playerWeaponModels.get(player)) {
+			this.playerWeaponModels.delete(player);
+		}
+		PlayerSignals.onItemUnequipped.Fire(player, slot);
 	}
 
 	public getEquippedWeapon(player: Player): Readonly<Weapon> | undefined {
@@ -135,5 +143,25 @@ export class ItemService implements OnStart {
 			}
 		}
 		return result;
+	}
+
+	private equipWeaponModel(player: Player, weaponId: string): void {
+		const character = player.Character;
+		if (!character) return;
+		if (!isR15CharacterModel(character)) return;
+
+		const weapon = getWeaponById(weaponId);
+		if (!weapon) return;
+
+		const model = weapon.model;
+		if (!model) return;
+
+		const clone = model.Clone();
+		clone.Parent = character;
+
+		// weld the model to the player's hand
+		this.characterService.mountPartToRightHand(character, clone.Handle, clone.Handle.RightGripAttachment.CFrame);
+		this.playerWeaponModels.set(player, clone);
+		return;
 	}
 }

@@ -2,7 +2,7 @@
 	<Meta name="ExplicitAutoJoints">true</Meta>
 	<External>null</External>
 	<External>nil</External>
-	<Item class="Model" referent="RBX8A007061F31D4F55AD761083260EBD58">
+	<Item class="Model" referent="RBX242941F7E0BF4515AA2A0174E3418426">
 		<Properties>
 			<BinaryString name="AttributesSerialize"></BinaryString>
 			<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
@@ -52,7 +52,7 @@
 				</CFrame>
 			</OptionalCoordinateFrame>
 		</Properties>
-		<Item class="Highlight" referent="RBX195E907572864FE7BF20F44E82528188">
+		<Item class="Highlight" referent="RBX46B1DFE5CFB2449186B083E4BD36B19C">
 			<Properties>
 				<Ref name="Adornee">null</Ref>
 				<BinaryString name="AttributesSerialize"></BinaryString>
@@ -77,7 +77,7 @@
 				<BinaryString name="Tags"></BinaryString>
 			</Properties>
 		</Item>
-		<Item class="MeshPart" referent="RBXE33C961861204F208C3956B6BF0E7A74">
+		<Item class="MeshPart" referent="RBX7C8A678FE6C04907A34DD0010DFDA94F">
 			<Properties>
 				<SharedString name="AeroMeshData">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 				<bool name="Anchored">false</bool>
@@ -211,7 +211,7 @@
 					<Z>0.580578148</Z>
 				</Vector3>
 			</Properties>
-			<Item class="Attachment" referent="RBX834D1B39F8884B168717CB1A77437716">
+			<Item class="Attachment" referent="RBX29512E8B729849C3BECBF8924E8907F6">
 				<Properties>
 					<BinaryString name="AttributesSerialize"></BinaryString>
 					<CoordinateFrame name="CFrame">
@@ -236,7 +236,7 @@
 					<bool name="Visible">true</bool>
 				</Properties>
 			</Item>
-			<Item class="Attachment" referent="RBX60CD4A36A18343498B9C93B0E488FA88">
+			<Item class="Attachment" referent="RBXE345764726A1460E928610854F5F0446">
 				<Properties>
 					<BinaryString name="AttributesSerialize"></BinaryString>
 					<CoordinateFrame name="CFrame">
@@ -260,7 +260,7 @@
 					<BinaryString name="Tags"></BinaryString>
 					<bool name="Visible">false</bool>
 				</Properties>
-				<Item class="Attachment" referent="RBX8CF0B8CD2EFF499CA64D6B32AE9A40CB">
+				<Item class="Attachment" referent="RBX2DFDAC3031974FB68B6347EDD0EA085B">
 					<Properties>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<CoordinateFrame name="CFrame">
@@ -285,7 +285,7 @@
 						<bool name="Visible">true</bool>
 					</Properties>
 				</Item>
-				<Item class="Attachment" referent="RBX367EBB8B9AE74570A1C4827B557237FE">
+				<Item class="Attachment" referent="RBX9F6F574774CD48E2AB7D9563001982DB">
 					<Properties>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<CoordinateFrame name="CFrame">
@@ -310,7 +310,7 @@
 						<bool name="Visible">true</bool>
 					</Properties>
 				</Item>
-				<Item class="Attachment" referent="RBX6DE23EC5DAB24FA8BBA2AF075C7C0C40">
+				<Item class="Attachment" referent="RBX9D43FE721E3C47BABBAD146A405637BC">
 					<Properties>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<CoordinateFrame name="CFrame">
@@ -335,7 +335,7 @@
 						<bool name="Visible">true</bool>
 					</Properties>
 				</Item>
-				<Item class="Attachment" referent="RBXCC5FE07F45F543F89971F13DEA992535">
+				<Item class="Attachment" referent="RBXD598E793D5374DE79B707A035F1499B6">
 					<Properties>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<CoordinateFrame name="CFrame">

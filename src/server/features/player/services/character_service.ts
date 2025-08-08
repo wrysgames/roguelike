@@ -121,9 +121,7 @@ export class CharacterService implements OnStart {
 		motor.Parent = rightHand;
 
 		motor.C0 = gripAttachment.CFrame;
-
 		if (cframe) motor.C1 = cframe;
-		else motor.C1 = gripAttachment.CFrame;
 
 		return motor;
 	}

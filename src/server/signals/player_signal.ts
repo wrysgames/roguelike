@@ -1,5 +1,6 @@
 import Signal from '@rbxts/signal';
 import { PlayerSaveData, StoredItemData } from 'server/features/datastore/types/schemas/inventory';
+import { ItemType } from 'shared/features/inventory/types';
 
 export class PlayerSignals {
 	// Player events
@@ -8,7 +9,7 @@ export class PlayerSignals {
 
 	// Item events
 	public static onItemEquipped: Signal<(player: Player, item: StoredItemData) => void> = new Signal();
-	public static onItemUnequipped: Signal<(player: Player, slot: string) => void> = new Signal();
+	public static onItemUnequipped: Signal<(player: Player, slot: ItemType) => void> = new Signal();
 
 	private constructor() {}
 }

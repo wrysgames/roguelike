@@ -71,10 +71,10 @@ export class DataService implements OnStart {
 			if (!instance) return undefined;
 			const profile = this.profiles.get(player);
 			if (!profile) return undefined;
+			const previous = profile.Data.equipped[instance.type];
+			if (previous) this.unequipItem(player, instance.type);
 
 			profile.Data.equipped[instance.type] = instance;
-
-			PlayerSignals.onItemEquipped.Fire(player, instance);
 			return instance;
 		} else {
 			warn('[DataService]: Inventory not found');
@@ -90,7 +90,6 @@ export class DataService implements OnStart {
 		if (!item) return;
 
 		profile.Data.equipped[slot] = undefined;
-		PlayerSignals.onItemUnequipped.Fire(player, item.instanceId);
 	}
 
 	public getEquippedItem(player: Player, slot: ItemType): StoredItemData | undefined {
