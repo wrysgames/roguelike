@@ -1,4 +1,9 @@
 import { OnStart, Service } from '@flamework/core';
+import {
+	DASH_AIR_ANIMATION_ID,
+	DASH_BACK_ANIMATION_ID,
+	DASH_GROUND_ANIMATION_ID,
+} from 'shared/constants/animations/dash';
 import { Character, R15Character } from 'shared/types/character';
 import { isCharacterModel } from 'shared/utils/character';
 import { AnimationManager } from '../utils/animation_manager';
@@ -25,6 +30,11 @@ export class CharacterService implements OnStart {
 			});
 			player.CharacterRemoving.Connect((character) => {
 				if (!isCharacterModel(character)) return;
+				this.preloadAnimations(character, [
+					DASH_AIR_ANIMATION_ID,
+					DASH_BACK_ANIMATION_ID,
+					DASH_GROUND_ANIMATION_ID,
+				]);
 				this.characterAnimations.delete(character);
 				this.characterStates.delete(character);
 			});

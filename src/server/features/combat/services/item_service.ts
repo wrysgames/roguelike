@@ -152,6 +152,10 @@ export class ItemService implements OnStart {
 		const character = player.Character;
 		if (!character) return;
 		if (!isR15CharacterModel(character)) return;
+		const weaponModel = this.playerWeaponModels.get(player);
+		if (weaponModel) return;
+
+		this.playerWeaponModels.delete(player);
 
 		const weapon = getWeaponById(weaponId);
 		if (!weapon) return;
@@ -165,6 +169,12 @@ export class ItemService implements OnStart {
 		// weld the model to the player's hand
 		this.characterService.mountPartToRightHand(character, clone.Handle, clone.Handle.RightGripAttachment.CFrame);
 		this.playerWeaponModels.set(player, clone);
+
+		// Preload the weapon's attack animation set
+		this.characterService.preloadAnimations(
+			character,
+			this.getWeaponAttackAnimationSet(weapon).map((animation) => animation.animationId),
+		);
 		return;
 	}
 }

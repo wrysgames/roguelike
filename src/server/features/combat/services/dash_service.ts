@@ -5,6 +5,11 @@ import { PlayerService } from 'server/features/player/services/player_service';
 import { CollisionService } from 'server/shared/services/collision_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { PlayerSignals } from 'server/signals/player_signal';
+import {
+	DASH_AIR_ANIMATION_ID,
+	DASH_BACK_ANIMATION_ID,
+	DASH_GROUND_ANIMATION_ID,
+} from 'shared/constants/animations/dash';
 import { CollisionGroup } from 'shared/constants/collision_group';
 import { isCharacterModel } from 'shared/utils/character';
 import { DashState } from '../utils/dash';
@@ -63,12 +68,11 @@ export class DashService implements OnStart {
 
 		// play the animation
 		const dashAnimationId = isDashingBackwards
-			? 'rbxassetid://87023280965723'
+			? DASH_BACK_ANIMATION_ID
 			: isCharacterInAir
-				? 'rbxassetid://81847735907464'
-				: 'rbxassetid://116300596660463';
+				? DASH_AIR_ANIMATION_ID
+				: DASH_GROUND_ANIMATION_ID;
 		const animationTrack = this.characterService.loadAnimation(character, dashAnimationId);
-		animationTrack.Ended.Once(() => animationTrack.Destroy());
 		animationTrack.Play();
 
 		let direction = humanoid.MoveDirection;
