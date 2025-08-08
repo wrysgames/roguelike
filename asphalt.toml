@@ -1,6 +1,6 @@
-[inputs.assets]
+[inputs.images]
 path = "assets/images/**/*"
-output_path = "src/shared/assets"
+output_path = "src/shared/assets/images"
 bleed = true
 
 [creator]

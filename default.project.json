@@ -28,6 +28,9 @@
 			},
 			"weapons": {
 				"$path": "assets/weapons"
+			},
+			"vfx": {
+				"$path": "assets/vfx"
 			}
 		},
 		"StarterPlayer": {
