@@ -12,6 +12,7 @@ export interface ServerToClientEvents {
 	// VFX
 	vfx: {
 		spawnDashParticles(root: Instance, rotation: CFrame, isInAir: boolean): void;
+		shakeCamera(): void;
 	};
 }
 
