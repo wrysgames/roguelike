@@ -13,5 +13,6 @@ export function isWeaponModelValid(weapon: Instance): weapon is WeaponModel {
 		(!hitboxesContainer.IsA('BasePart') && !hitboxesContainer.IsA('Attachment'))
 	)
 		return false;
+	if (!weapon.FindFirstChild('Highlight')) return false;
 	return true;
 }

@@ -1,19 +1,24 @@
 import { OnStart, Service } from '@flamework/core';
-import ObjectUtils from '@rbxts/object-utils';
+import ObjectUtils, { deepCopy } from '@rbxts/object-utils';
 import { DataService } from 'server/features/datastore/services/data_service';
-import { StoredItemData } from 'server/features/datastore/types/schemas/inventory';
+import { CharacterService } from 'server/features/player/services/character_service';
 import { ServerEvents } from 'server/signals/networking/events';
+import { PlayerSignals } from 'server/signals/player_signal';
 import { SWORD_ATTACK_ANIMATION_SET } from 'shared/constants/animations/attack_animation_sets/sword';
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { getWeaponById } from 'shared/features/inventory/data/weapons';
-import { Armor, BaseItem, InferStats, InferTags, Weapon } from 'shared/features/inventory/types';
+import { Armor, BaseItem, InferStats, InferTags, ItemType, Weapon, WeaponModel } from 'shared/features/inventory/types';
 import { AttackAnimation } from 'shared/types/animation';
-import { isCharacterModel } from 'shared/utils/character';
-import { deepClone } from 'shared/utils/instance';
+import { isCharacterModel, isR15CharacterModel } from 'shared/utils/character';
 
 @Service()
 export class ItemService implements OnStart {
-	constructor(private dataService: DataService) {}
+	private playerWeaponModels: Map<Player, WeaponModel> = new Map();
+
+	constructor(
+		private dataService: DataService,
+		private characterService: CharacterService,
+	) {}
 
 	public onStart(): void {
 		ServerEvents.combat.equip.connect((player, instanceId) => {
@@ -22,6 +27,10 @@ export class ItemService implements OnStart {
 			print(`Equipping ${item.id} to slot: ${item.type} for player ${player.DisplayName}`);
 			this.equipItem(player, instanceId);
 		});
+	}
+
+	public isSlotEquipped(player: Player, slot: ItemType): boolean {
+		return this.dataService.getEquippedItem(player, slot) !== undefined;
 	}
 
 	public equipItem(player: Player, instanceId: string): void {
@@ -35,20 +44,28 @@ export class ItemService implements OnStart {
 		// Visually attach it to the player's character
 		switch (item.type) {
 			case 'weapon': {
-				const weapon = getWeaponById(item.id);
-				if (!weapon) return;
-
-				const model = weapon.model;
-				if (!model) break;
-
-				// weld the model to the player's hand
+				this.equipWeaponModel(player, item.id);
 				break;
 			}
 			case 'armor':
 				break;
 			default:
-				return;
+				break;
 		}
+
+		PlayerSignals.onItemEquipped.Fire(player, item);
+	}
+
+	public unequipItem(player: Player, slot: ItemType): void {
+		this.dataService.unequipItem(player, slot);
+		if (slot === 'weapon' && this.playerWeaponModels.get(player)) {
+			this.playerWeaponModels.delete(player);
+		}
+		PlayerSignals.onItemUnequipped.Fire(player, slot);
+	}
+
+	public getEquippedWeaponModel(player: Player): WeaponModel | undefined {
+		return this.playerWeaponModels.get(player);
 	}
 
 	public getEquippedWeapon(player: Player): Readonly<Weapon> | undefined {
@@ -67,12 +84,12 @@ export class ItemService implements OnStart {
 		return undefined;
 	}
 
-	public calculateItemStats<T extends BaseItem<InferStats<T>, InferTags<T>>>(
+	public getItemStats<T extends BaseItem<InferStats<T>, InferTags<T>>>(
 		item: T,
 		tier: number,
 		level: number,
 	): InferStats<T> {
-		let scaledStats: InferStats<T> = deepClone(item.baseStats);
+		let scaledStats: InferStats<T> = deepCopy(item.baseStats);
 
 		if (item.upgrades) {
 			for (let i = 0; i < math.min(tier, item.maxTiers, item.upgrades.size()); i++) {
@@ -101,7 +118,7 @@ export class ItemService implements OnStart {
 	}
 
 	private applyUpgrade<T extends defined>(base: T, upgrade: Partial<T>): T {
-		const result = deepClone(base);
+		const result = deepCopy(base);
 		for (const [key] of ObjectUtils.entries(upgrade) as [keyof T, unknown][]) {
 			const baseVal = result[key];
 			const upVal = upgrade[key];
@@ -113,14 +130,14 @@ export class ItemService implements OnStart {
 			} else if (typeOf(baseVal) === 'table' && typeIs(upVal, 'table') && baseVal && upVal) {
 				result[key] = this.applyUpgrade(baseVal, upVal);
 			} else if (typeIs(upVal, 'table') && baseVal === undefined) {
-				result[key] = deepClone(upVal) as T[typeof key];
+				result[key] = deepCopy(upVal) as T[typeof key];
 			}
 		}
 		return result;
 	}
 
 	private scaleWithLevel<T extends defined>(stats: T, multiplier: number): T {
-		const result = deepClone(stats);
+		const result = deepCopy(stats);
 		for (const [key, val] of ObjectUtils.entries(result) as [keyof T, unknown][]) {
 			if (typeIs(val, 'number')) {
 				result[key] = (val * multiplier) as T[typeof key];
@@ -129,5 +146,25 @@ export class ItemService implements OnStart {
 			}
 		}
 		return result;
+	}
+
+	private equipWeaponModel(player: Player, weaponId: string): void {
+		const character = player.Character;
+		if (!character) return;
+		if (!isR15CharacterModel(character)) return;
+
+		const weapon = getWeaponById(weaponId);
+		if (!weapon) return;
+
+		const model = weapon.model;
+		if (!model) return;
+
+		const clone = model.Clone();
+		clone.Parent = character;
+
+		// weld the model to the player's hand
+		this.characterService.mountPartToRightHand(character, clone.Handle, clone.Handle.RightGripAttachment.CFrame);
+		this.playerWeaponModels.set(player, clone);
+		return;
 	}
 }

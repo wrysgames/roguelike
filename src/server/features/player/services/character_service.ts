@@ -1,5 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
-import { Character } from 'shared/types/character';
+import { WeaponModel } from 'shared/features/inventory/types';
+import { Character, R15Character } from 'shared/types/character';
 import { isCharacterModel } from 'shared/utils/character';
 import { CharacterState } from '../utils/character_state';
 import { PlayerService } from './player_service';
@@ -108,5 +109,20 @@ export class CharacterService implements OnStart {
 		}
 
 		return animationTrack;
+	}
+
+	public mountPartToRightHand(character: R15Character, part: BasePart, cframe?: CFrame): Motor6D {
+		const rightHand = character.RightHand;
+		const gripAttachment = rightHand.RightGripAttachment;
+
+		const motor = new Instance('Motor6D');
+		motor.Part0 = rightHand;
+		motor.Part1 = part;
+		motor.Parent = rightHand;
+
+		motor.C0 = gripAttachment.CFrame;
+		if (cframe) motor.C1 = cframe;
+
+		return motor;
 	}
 }

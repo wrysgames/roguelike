@@ -14,6 +14,9 @@ importers:
       '@flamework/networking':
         specifier: ^1.3.1
         version: 1.3.1(@flamework/core@1.3.1)
+      '@rbxts/camera-shaker':
+        specifier: ^1.0.8
+        version: 1.0.8
       '@rbxts/object-utils':
         specifier: ^1.0.4
         version: 1.0.4
@@ -200,6 +203,9 @@ packages:
     resolution: {integrity: sha512-spHaw5io3dcEzH5eWmopk16vVBJ1yxPirGmO9mO1JakkQXUAfvxw20qfAuhwIpfzSmkPjhroueXlGpgdi8O3eQ==}
     peerDependencies:
       '@flamework/core': '*'
+
+  '@rbxts/camera-shaker@1.0.8':
+    resolution: {integrity: sha512-OhmjnBt12QZg+gLEtTRwh0afkaVEtuNm6jRSqK8jTK8cT/FDY1reO5vVBZzfF3avTqA4IPEEVDhG/F9TV+0PJg==}
 
   '@rbxts/compiler-types@3.0.0-types.0':
     resolution: {integrity: sha512-VGOHJPoL7+56NTatMGqQj3K7xWuzEV+aP4QD5vZiHu+bcff3kiTmtoadaF6NkJrmwfFAvbsd4Dg764ZjWNceag==}
@@ -1067,6 +1073,8 @@ snapshots:
       '@rbxts/services': 1.5.5
       '@rbxts/signal': 1.1.1
       '@rbxts/t': 3.2.1
+
+  '@rbxts/camera-shaker@1.0.8': {}
 
   '@rbxts/compiler-types@3.0.0-types.0': {}
 

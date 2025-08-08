@@ -1,12 +1,12 @@
-import { OnStart, Service } from '@flamework/core';
+import { OnInit, Service } from '@flamework/core';
 import { Players } from '@rbxts/services';
 
 @Service()
-export class PlayerService implements OnStart {
+export class PlayerService implements OnInit {
 	private playerJoinedCallbacks: ((player: Player) => void)[] = [];
 	private playerLeavingCallbacks: ((player: Player) => void)[] = [];
 
-	public onStart(): void {
+	public onInit(): void {
 		Players.PlayerAdded.Connect((player) => {
 			this.playerJoinedCallbacks.forEach((callback) => {
 				task.spawn(callback, player);

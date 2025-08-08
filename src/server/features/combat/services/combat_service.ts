@@ -1,16 +1,17 @@
 import { OnStart, Service } from '@flamework/core';
-import { RunService } from '@rbxts/services';
+import { RunService, Workspace } from '@rbxts/services';
 import { CharacterService } from 'server/features/player/services/character_service';
-import { PlayerService } from 'server/features/player/services/player_service';
+import { SoundService } from 'server/shared/services/sound_service';
 import { ServerEvents } from 'server/signals/networking/events';
+import { CRITICAL_HIT_SOUND_ID, ENEMY_HIT_SOUND_ID, SWORD_SLASH_SOUND_ID } from 'shared/constants/sounds/combat_sounds';
 import { AttackAnimation } from 'shared/types/animation';
-import { isCharacterModel } from 'shared/utils/character';
+import { getCharacterFromPart, isCharacterModel } from 'shared/utils/character';
+import { getChildrenOfType } from 'shared/utils/instance';
 import { AttackState } from '../utils/attack';
 import { SharedStateManager } from '../utils/shared_state_manager';
-import { DashService } from './dash_service';
 import { ItemService } from './item_service';
 
-const COMBO_COOLDOWN = 0.5;
+const COMBO_COOLDOWN = 1.0;
 
 const DEFAULT_HITBOX_START_KEYFRAME_NAME = 'Hit';
 const DEFAULT_COMBO_START_KEYFRAME_NAME = 'Combo';
@@ -21,6 +22,7 @@ export class CombatService implements OnStart {
 	constructor(
 		private characterService: CharacterService,
 		private itemService: ItemService,
+		private soundService: SoundService,
 	) {}
 
 	public onStart(): void {
@@ -39,16 +41,19 @@ export class CombatService implements OnStart {
 			state.comboResetTask = undefined;
 		}
 
+		const equippedWeapon = this.itemService.getEquippedWeapon(player);
+		if (!equippedWeapon) return;
+		const attackAnimationSet = this.itemService.getWeaponAttackAnimationSet(equippedWeapon);
+
 		if (state.isAttacking) {
 			if (state.isComboWindowOpen) {
-				state.isComboQueued = true;
+				if (state.comboIndex < attackAnimationSet.size()) {
+					state.isComboQueued = true;
+				}
 			}
 			return;
 		}
 
-		const equippedWeapon = this.itemService.getEquippedWeapon(player);
-		if (!equippedWeapon) return;
-		const attackAnimationSet = this.itemService.getWeaponAttackAnimationSet(equippedWeapon);
 		const attackAnimation = attackAnimationSet[state.comboIndex++];
 		if (!attackAnimation) return;
 
@@ -91,7 +96,14 @@ export class CombatService implements OnStart {
 			.GetMarkerReachedSignal(animation.keyframes?.hitbox?.start ?? DEFAULT_HITBOX_START_KEYFRAME_NAME)
 			.Once(() => {
 				this.enableHitbox(player);
-				// TODO: Play slashing sound
+				this.soundService.makeSound(
+					state.currentAttackAnimation?.sounds?.attack ?? SWORD_SLASH_SOUND_ID,
+					character.HumanoidRootPart,
+					{
+						volume: 0.75,
+					},
+					true,
+				);
 				// TODO: Slash VFX
 			});
 		track
@@ -121,8 +133,66 @@ export class CombatService implements OnStart {
 		if (state.isHitboxActive) return;
 		if (state.hitboxConnection) return;
 
+		const character = player.Character;
+
+		const weapon = this.itemService.getEquippedWeapon(player);
+		const weaponModel = this.itemService.getEquippedWeaponModel(player);
+		if (!(weapon && weaponModel)) return;
+
+		const weaponStats = this.itemService.getItemStats(weapon, 1, 1);
+
+		const charactersHitMap: Map<Instance, boolean> = new Map();
+		const overlapParams = this.getOverlapParams(character ? [character] : []);
+
+		let didProcessHit = false;
+
+		state.isHitboxActive = true;
+
 		state.hitboxConnection = RunService.Heartbeat.Connect(() => {
-			if (!state.currentAttackAnimation) return this.disableHitbox(player);
+			if (!state.currentAttackAnimation) {
+				this.disableHitbox(player);
+				return;
+			}
+			if (!weaponModel) return;
+
+			const hitboxAttachments = getChildrenOfType(weaponModel.Handle.Hitboxes, 'Attachment');
+
+			for (const hitbox of hitboxAttachments) {
+				const partsHit = Workspace.GetPartBoundsInRadius(hitbox.WorldPosition, 2, overlapParams);
+
+				for (const part of partsHit) {
+					const characterHit = getCharacterFromPart(part);
+					if (!characterHit) continue;
+					if (charactersHitMap.has(characterHit)) continue;
+					if (characterHit.Humanoid.Health === 0) continue;
+
+					charactersHitMap.set(characterHit, true);
+					const isCrit = math.random() < weaponStats.critRate;
+					const damage =
+						weaponStats.damage *
+						(state.currentAttackAnimation.damageMultiplier ?? 1) *
+						(isCrit ? (weaponStats.critDamageMultiplier ?? 2) : 1);
+					characterHit.Humanoid.TakeDamage(damage);
+
+					// VFX Here
+					if (!didProcessHit) {
+						didProcessHit = true;
+						ServerEvents.vfx.shakeCamera(player);
+						ServerEvents.vfx.spawnSlashParticles.broadcast(characterHit.HumanoidRootPart);
+						this.soundService.makeSound(
+							isCrit
+								? CRITICAL_HIT_SOUND_ID
+								: (state.currentAttackAnimation.sounds?.hitConfirmed ?? ENEMY_HIT_SOUND_ID),
+							part,
+							{
+								playbackSpeed: math.random(10, 14) / 10,
+								volume: 1,
+							},
+							true,
+						);
+					}
+				}
+			}
 		});
 	}
 
@@ -143,5 +213,12 @@ export class CombatService implements OnStart {
 
 	public getAttackState(player: Player): AttackState {
 		return SharedStateManager.getInstance().getAttackState(player);
+	}
+
+	private getOverlapParams(filterDescendants: Instance[]): OverlapParams {
+		const overlapParams = new OverlapParams();
+		overlapParams.FilterDescendantsInstances = filterDescendants ? filterDescendants : [];
+		overlapParams.FilterType = Enum.RaycastFilterType.Exclude;
+		return overlapParams;
 	}
 }
