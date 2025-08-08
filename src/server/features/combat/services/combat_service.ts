@@ -4,6 +4,7 @@ import { CharacterService } from 'server/features/player/services/character_serv
 import { PlayerService } from 'server/features/player/services/player_service';
 import { SoundService } from 'server/shared/services/sound_service';
 import { ServerEvents } from 'server/signals/networking/events';
+import { CRITICAL_HIT_SOUND_ID, ENEMY_HIT_SOUND_ID, SWORD_SLASH_SOUND_ID } from 'shared/constants/sounds/combat_sounds';
 import { AttackAnimation } from 'shared/types/animation';
 import { getCharacterFromPart, isCharacterModel } from 'shared/utils/character';
 import { getChildrenOfType } from 'shared/utils/instance';
@@ -11,7 +12,7 @@ import { AttackState } from '../utils/attack';
 import { SharedStateManager } from '../utils/shared_state_manager';
 import { ItemService } from './item_service';
 
-const COMBO_COOLDOWN = 0.5;
+const COMBO_COOLDOWN = 1.0;
 
 const DEFAULT_HITBOX_START_KEYFRAME_NAME = 'Hit';
 const DEFAULT_COMBO_START_KEYFRAME_NAME = 'Combo';
@@ -41,16 +42,19 @@ export class CombatService implements OnStart {
 			state.comboResetTask = undefined;
 		}
 
+		const equippedWeapon = this.itemService.getEquippedWeapon(player);
+		if (!equippedWeapon) return;
+		const attackAnimationSet = this.itemService.getWeaponAttackAnimationSet(equippedWeapon);
+
 		if (state.isAttacking) {
 			if (state.isComboWindowOpen) {
-				state.isComboQueued = true;
+				if (state.comboIndex < attackAnimationSet.size()) {
+					state.isComboQueued = true;
+				}
 			}
 			return;
 		}
 
-		const equippedWeapon = this.itemService.getEquippedWeapon(player);
-		if (!equippedWeapon) return;
-		const attackAnimationSet = this.itemService.getWeaponAttackAnimationSet(equippedWeapon);
 		const attackAnimation = attackAnimationSet[state.comboIndex++];
 		if (!attackAnimation) return;
 
@@ -93,7 +97,15 @@ export class CombatService implements OnStart {
 			.GetMarkerReachedSignal(animation.keyframes?.hitbox?.start ?? DEFAULT_HITBOX_START_KEYFRAME_NAME)
 			.Once(() => {
 				this.enableHitbox(player);
-				// TODO: Play slashing sound
+				this.soundService.makeSound(
+					SWORD_SLASH_SOUND_ID,
+					character.HumanoidRootPart,
+					{
+						PlaybackSpeed: state.comboIndex,
+						Volume: 1,
+					},
+					true,
+				);
 				// TODO: Slash VFX
 			});
 		track
@@ -136,8 +148,13 @@ export class CombatService implements OnStart {
 
 		let didProcessHit = false;
 
+		state.isHitboxActive = true;
+
 		state.hitboxConnection = RunService.Heartbeat.Connect(() => {
-			if (!state.currentAttackAnimation) return this.disableHitbox(player);
+			if (!state.currentAttackAnimation) {
+				this.disableHitbox(player);
+				return;
+			}
 			if (!weaponModel) return;
 
 			const hitboxAttachments = getChildrenOfType(weaponModel.Handle.Hitboxes, 'Attachment');
@@ -163,10 +180,10 @@ export class CombatService implements OnStart {
 					if (!didProcessHit) {
 						didProcessHit = true;
 						this.soundService.makeSound(
-							isCrit ? `` : ``,
+							isCrit ? CRITICAL_HIT_SOUND_ID : ENEMY_HIT_SOUND_ID,
 							hitbox,
 							{
-								PlaybackSpeed: isCrit ? math.random(7, 9) / 10 : math.random(10, 14) / 10,
+								PlaybackSpeed: (isCrit ? math.random(7, 9) : math.random(10, 14)) / 10,
 							},
 							true,
 						);
