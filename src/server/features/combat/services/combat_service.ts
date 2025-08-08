@@ -1,7 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
 import { RunService, Workspace } from '@rbxts/services';
 import { CharacterService } from 'server/features/player/services/character_service';
-import { PlayerService } from 'server/features/player/services/player_service';
 import { SoundService } from 'server/shared/services/sound_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { CRITICAL_HIT_SOUND_ID, ENEMY_HIT_SOUND_ID, SWORD_SLASH_SOUND_ID } from 'shared/constants/sounds/combat_sounds';
@@ -98,10 +97,10 @@ export class CombatService implements OnStart {
 			.Once(() => {
 				this.enableHitbox(player);
 				this.soundService.makeSound(
-					SWORD_SLASH_SOUND_ID,
+					state.currentAttackAnimation?.sounds?.attack ?? SWORD_SLASH_SOUND_ID,
 					character.HumanoidRootPart,
 					{
-						Volume: 1,
+						volume: 0.75,
 					},
 					true,
 				);
@@ -179,11 +178,13 @@ export class CombatService implements OnStart {
 					if (!didProcessHit) {
 						didProcessHit = true;
 						this.soundService.makeSound(
-							isCrit ? CRITICAL_HIT_SOUND_ID : ENEMY_HIT_SOUND_ID,
-							hitbox,
+							isCrit
+								? CRITICAL_HIT_SOUND_ID
+								: (state.currentAttackAnimation.sounds?.hitConfirmed ?? ENEMY_HIT_SOUND_ID),
+							part,
 							{
-								PlaybackSpeed: (isCrit ? math.random(7, 9) : math.random(10, 14)) / 10,
-								Volume: 1,
+								playbackSpeed: math.random(10, 14) / 10,
+								volume: 1,
 							},
 							true,
 						);
