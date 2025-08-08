@@ -177,6 +177,7 @@ export class CombatService implements OnStart {
 					// VFX Here
 					if (!didProcessHit) {
 						didProcessHit = true;
+						ServerEvents.vfx.shakeCamera(player);
 						this.soundService.makeSound(
 							isCrit
 								? CRITICAL_HIT_SOUND_ID
