@@ -15,3 +15,8 @@ export interface AttackAnimation {
 		hitConfirmed?: string;
 	};
 }
+
+export interface AttackAnimationSet {
+	comboCooldown: number;
+	animations: AttackAnimation[];
+}

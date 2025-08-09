@@ -11,8 +11,6 @@ import { AttackState } from '../utils/attack';
 import { SharedStateManager } from '../utils/shared_state_manager';
 import { ItemService } from './item_service';
 
-const COMBO_COOLDOWN = 1.0;
-
 const DEFAULT_HITBOX_START_KEYFRAME_NAME = 'Hit';
 const DEFAULT_COMBO_START_KEYFRAME_NAME = 'Combo';
 const DEFAULT_COMBO_END_KEYFRAME_NAME = 'ComboEnd';
@@ -44,23 +42,24 @@ export class CombatService implements OnStart {
 		const equippedWeapon = this.itemService.getEquippedWeapon(player);
 		if (!equippedWeapon) return;
 		const attackAnimationSet = this.itemService.getWeaponAttackAnimationSet(equippedWeapon);
+		const numAnimations = attackAnimationSet.animations.size();
 
 		if (state.isAttacking) {
 			if (state.isComboWindowOpen) {
-				if (state.comboIndex < attackAnimationSet.size()) {
+				if (state.comboIndex < numAnimations) {
 					state.isComboQueued = true;
 				}
 			}
 			return;
 		}
 
-		const attackAnimation = attackAnimationSet[state.comboIndex++];
+		const attackAnimation = attackAnimationSet.animations[state.comboIndex++];
 		if (!attackAnimation) return;
 
 		// If the animation was the last in the list, the combo is finished; add a cooldown
-		if (state.comboIndex >= attackAnimationSet.size()) {
+		if (state.comboIndex >= numAnimations) {
 			state.isComboCooldownActive = true;
-			task.delay(COMBO_COOLDOWN, () => (state.isComboCooldownActive = false));
+			task.delay(attackAnimationSet.comboCooldown, () => (state.isComboCooldownActive = false));
 			this.resetCombo(player);
 		} else {
 			state.comboResetTask = task.delay(1, () => {
@@ -178,7 +177,9 @@ export class CombatService implements OnStart {
 					if (!didProcessHit) {
 						didProcessHit = true;
 						ServerEvents.vfx.shakeCamera(player);
-						ServerEvents.vfx.spawnSlashParticles.broadcast(characterHit.HumanoidRootPart);
+						if (isCrit) {
+							ServerEvents.vfx.spawnSlashParticles.broadcast(characterHit.HumanoidRootPart);
+						}
 						this.soundService.makeSound(
 							isCrit
 								? CRITICAL_HIT_SOUND_ID

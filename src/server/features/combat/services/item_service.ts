@@ -8,7 +8,7 @@ import { SWORD_ATTACK_ANIMATION_SET } from 'shared/constants/animations/attack_a
 import { getArmorById } from 'shared/features/inventory/data/armor';
 import { getWeaponById } from 'shared/features/inventory/data/weapons';
 import { Armor, BaseItem, InferStats, InferTags, ItemType, Weapon, WeaponModel } from 'shared/features/inventory/types';
-import { AttackAnimation } from 'shared/types/animation';
+import { AttackAnimation, AttackAnimationSet } from 'shared/types/animation';
 import { isCharacterModel, isR15CharacterModel } from 'shared/utils/character';
 
 @Service()
@@ -107,13 +107,13 @@ export class ItemService implements OnStart {
 		return scaledStats;
 	}
 
-	public getWeaponAttackAnimationSet(weapon: Readonly<Weapon>): AttackAnimation[] {
+	public getWeaponAttackAnimationSet(weapon: Readonly<Weapon>): AttackAnimationSet {
 		switch (weapon.visualType) {
 			case 'sword': {
 				return SWORD_ATTACK_ANIMATION_SET;
 			}
 			default:
-				return [];
+				return SWORD_ATTACK_ANIMATION_SET;
 		}
 	}
 
@@ -173,7 +173,7 @@ export class ItemService implements OnStart {
 		// Preload the weapon's attack animation set
 		this.characterService.preloadAnimations(
 			character,
-			this.getWeaponAttackAnimationSet(weapon).map((animation) => animation.animationId),
+			this.getWeaponAttackAnimationSet(weapon).animations.map((animation) => animation.animationId),
 		);
 		return;
 	}
