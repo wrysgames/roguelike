@@ -12,7 +12,7 @@ const woodenSword = new WeaponBuilder('wooden_sword', 'Wooden Sword', 'common')
 	.withWeaponType('medium')
 	.obtainableInDrop()
 	.withUpgrade({
-		stats: { damage: 9 },
+		stats: { damage: 9, critRate: 0.5 },
 		description: '+5 base damage',
 	})
 	.withUpgrade({

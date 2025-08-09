@@ -12,7 +12,10 @@ export interface ServerToClientEvents {
 	// VFX
 	vfx: {
 		spawnDashParticles(root: Instance, rotation: CFrame, isInAir: boolean): void;
-		spawnSlashParticles(adornee: BasePart): void;
+		spawnDotNebula(adornee: BasePart): void;
+		spawnSlashEffect(adornee: BasePart): void;
+		spawnHitspark(adornee: BasePart): void;
+		spawnCritBlood(adornee: BasePart): void;
 		shakeCamera(): void;
 	};
 }

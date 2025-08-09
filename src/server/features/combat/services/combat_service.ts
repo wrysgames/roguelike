@@ -178,8 +178,10 @@ export class CombatService implements OnStart {
 						didProcessHit = true;
 						ServerEvents.vfx.shakeCamera(player);
 						if (isCrit) {
-							ServerEvents.vfx.spawnSlashParticles.broadcast(characterHit.HumanoidRootPart);
+							ServerEvents.vfx.spawnDotNebula.broadcast(characterHit.HumanoidRootPart);
+							ServerEvents.vfx.spawnCritBlood.broadcast(part);
 						}
+						ServerEvents.vfx.spawnSlashEffect.broadcast(part);
 						this.soundService.makeSound(
 							isCrit
 								? CRITICAL_HIT_SOUND_ID

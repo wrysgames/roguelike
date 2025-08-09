@@ -1,9 +1,7 @@
 import { Controller, OnStart } from '@flamework/core';
 import { ReplicatedStorage } from '@rbxts/services';
 import { ClientEvents } from 'client/signals/networking/events';
-import { getDescendantsOfType } from 'shared/utils/instance';
-
-const DEFAULT_EMIT_COUNT = 5;
+import { emitParticlesInModel, setVfxInstanceCFrame } from '../utils/emit';
 
 @Controller()
 export class ParticleController implements OnStart {
@@ -11,59 +9,62 @@ export class ParticleController implements OnStart {
 		ClientEvents.vfx.spawnDashParticles.connect(() => {
 			// DO SOMETHING
 		});
-		ClientEvents.vfx.spawnSlashParticles.connect((adornee: BasePart) => {
-			this.spawnSlashParticles(adornee);
+
+		ClientEvents.vfx.spawnDotNebula.connect((adornee: BasePart) => {
+			this.spawnDotNebula(adornee);
+		});
+		ClientEvents.vfx.spawnSlashEffect.connect((adornee: BasePart) => {
+			this.spawnSlashEffect(adornee);
+		});
+		ClientEvents.vfx.spawnHitspark.connect((adornee: BasePart) => {
+			this.spawnHitspark(adornee);
+		});
+		ClientEvents.vfx.spawnCritBlood.connect((adornee: BasePart) => {
+			this.spawnCritBlood(adornee);
 		});
 	}
 
-	public spawnSlashParticles(adornee: BasePart): void {
-		const vfxAttachment = ReplicatedStorage.vfx.combat.FindFirstChild('slash_fx');
-		print(vfxAttachment);
+	public spawnDotNebula(adornee: BasePart): void {
+		const vfxAttachment = ReplicatedStorage.vfx.combat.FindFirstChild('dot_nebula');
 		if (!vfxAttachment) return;
 
 		const clone = vfxAttachment.Clone();
 		clone.Parent = adornee;
-		this.emitParticlesInModel(clone).andThen(() => {
+		emitParticlesInModel(clone).andThen(() => {
 			clone.Destroy();
 		});
 	}
 
-	private emitParticlesInModel(model: Instance): Promise<void> {
-		return new Promise((resolve) => {
-			const particles = getDescendantsOfType(model, 'ParticleEmitter');
+	public spawnSlashEffect(adornee: BasePart): void {
+		const vfxAttachment = ReplicatedStorage.vfx.combat.FindFirstChild('slash');
+		if (!vfxAttachment) return;
 
-			if (particles.size() === 0) {
-				resolve();
-				return;
-			}
+		const clone = vfxAttachment.Clone();
+		clone.Parent = adornee;
+		emitParticlesInModel(clone).andThen(() => {
+			clone.Destroy();
+		});
+	}
 
-			let destroyedCount = 0;
-			const total = particles.size();
+	public spawnHitspark(adornee: BasePart): void {
+		const vfxAttachment = ReplicatedStorage.vfx.combat.FindFirstChild('hitspark');
+		if (!vfxAttachment) return;
 
-			for (const particle of particles) {
-				const emitCount = particle.GetAttribute('EmitCount');
-				if (emitCount !== undefined && !typeIs(emitCount, 'number')) continue;
+		const clone = vfxAttachment.Clone();
+		clone.Parent = adornee;
+		emitParticlesInModel(clone).andThen(() => {
+			clone.Destroy();
+		});
+	}
 
-				const emitDelay = particle.GetAttribute('EmitDelay');
-				if (emitDelay !== undefined && !typeIs(emitDelay, 'number')) continue;
+	public spawnCritBlood(adornee: BasePart): void {
+		const vfxAttachment = ReplicatedStorage.vfx.combat.FindFirstChild('crit_blood');
+		if (!vfxAttachment) return;
 
-				const doEmit = () => {
-					particle.Emit(emitCount ?? DEFAULT_EMIT_COUNT);
-					task.delay(particle.Lifetime.Max, () => {
-						particle.Destroy();
-						destroyedCount++;
-						if (destroyedCount === total) {
-							resolve();
-						}
-					});
-				};
-
-				if (emitDelay) {
-					task.delay(emitDelay, doEmit);
-				} else {
-					doEmit();
-				}
-			}
+		const clone = vfxAttachment.Clone();
+		clone.Parent = adornee;
+		emitParticlesInModel(clone).andThen(() => {
+			clone.Destroy();
 		});
 	}
 }
