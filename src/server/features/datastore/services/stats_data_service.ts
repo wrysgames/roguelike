@@ -9,7 +9,7 @@ import { StatsData } from '../types/schemas/stats';
 const STATS_DATA_SERVICE = ProfileStore.New<StatsData>('STATS', statsProfileTemplate);
 
 @Service()
-export class InventoryDataService implements OnStart {
+export class StatsDataService implements OnStart {
 	private profiles: Map<Player, Profile<StatsData>> = new Map();
 
 	constructor(private playerService: PlayerService) {}
@@ -54,12 +54,12 @@ export class InventoryDataService implements OnStart {
 		}
 	}
 
-	public incrementPlayerStat(player: Player, value: keyof StatsData, amount: number = 1): void {
+	public incrementPlayerStat(player: Player, stat: keyof StatsData, amount: number = 1): void {
 		const profile = this.profiles.get(player);
 		if (!profile) return;
 
-		if (typeIs(profile.Data[value], 'number')) {
-			profile.Data[value] += amount;
+		if (typeIs(profile.Data[stat], 'number')) {
+			profile.Data[stat] += amount;
 		}
 	}
 

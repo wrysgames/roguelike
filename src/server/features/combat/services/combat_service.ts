@@ -1,5 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
 import { RunService, Workspace } from '@rbxts/services';
+import { StatsDataService } from 'server/features/datastore/services/stats_data_service';
 import { CharacterService } from 'server/features/player/services/character_service';
 import { SoundService } from 'server/shared/services/sound_service';
 import { ServerEvents } from 'server/signals/networking/events';
@@ -21,6 +22,7 @@ export class CombatService implements OnStart {
 		private characterService: CharacterService,
 		private itemService: ItemService,
 		private soundService: SoundService,
+		private statsDataService: StatsDataService,
 	) {}
 
 	public onStart(): void {
@@ -172,6 +174,8 @@ export class CombatService implements OnStart {
 						(state.currentAttackAnimation.damageMultiplier ?? 1) *
 						(isCrit ? (weaponStats.critDamageMultiplier ?? 2) : 1);
 					characterHit.Humanoid.TakeDamage(damage);
+
+					this.statsDataService.incrementPlayerStat(player, 'damageDealt', damage);
 
 					// VFX Here
 					if (!didProcessHit) {
