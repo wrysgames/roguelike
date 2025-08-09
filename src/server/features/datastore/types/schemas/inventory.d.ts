@@ -9,7 +9,7 @@ export interface StoredItemData {
 	tier?: number; // 0 = base, 1 = tier II, 3 = tier III, etc...
 }
 
-export interface PlayerSaveData {
+export interface InventoryData {
 	gold: number;
 	inventory: StoredItemData[];
 	equipped: {

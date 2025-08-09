@@ -1,6 +1,6 @@
 import { OnStart, Service } from '@flamework/core';
 import ObjectUtils, { deepCopy } from '@rbxts/object-utils';
-import { DataService } from 'server/features/datastore/services/data_service';
+import { InventoryDataService } from 'server/features/datastore/services/inventory_data_service';
 import { CharacterService } from 'server/features/player/services/character_service';
 import { ServerEvents } from 'server/signals/networking/events';
 import { PlayerSignals } from 'server/signals/player_signal';
@@ -16,13 +16,13 @@ export class ItemService implements OnStart {
 	private playerWeaponModels: Map<Player, WeaponModel> = new Map();
 
 	constructor(
-		private dataService: DataService,
+		private inventoryDataService: InventoryDataService,
 		private characterService: CharacterService,
 	) {}
 
 	public onStart(): void {
 		ServerEvents.combat.equip.connect((player, instanceId) => {
-			const item = this.dataService.getInstanceFromPlayerInventory(player, instanceId);
+			const item = this.inventoryDataService.getInstanceFromPlayerInventory(player, instanceId);
 			if (!item) return;
 			print(`Equipping ${item.id} to slot: ${item.type} for player ${player.DisplayName}`);
 			this.equipItem(player, instanceId);
@@ -30,7 +30,7 @@ export class ItemService implements OnStart {
 	}
 
 	public isSlotEquipped(player: Player, slot: ItemType): boolean {
-		return this.dataService.getEquippedItem(player, slot) !== undefined;
+		return this.inventoryDataService.getEquippedItem(player, slot) !== undefined;
 	}
 
 	public equipItem(player: Player, instanceId: string): void {
@@ -38,7 +38,7 @@ export class ItemService implements OnStart {
 		if (!character) return;
 		if (!isCharacterModel(character)) return;
 
-		const item = this.dataService.equipItem(player, instanceId);
+		const item = this.inventoryDataService.equipItem(player, instanceId);
 		if (!item) return;
 
 		// Visually attach it to the player's character
@@ -57,7 +57,7 @@ export class ItemService implements OnStart {
 	}
 
 	public unequipItem(player: Player, slot: ItemType): void {
-		this.dataService.unequipItem(player, slot);
+		this.inventoryDataService.unequipItem(player, slot);
 		if (slot === 'weapon' && this.playerWeaponModels.get(player)) {
 			this.playerWeaponModels.delete(player);
 		}
@@ -69,7 +69,7 @@ export class ItemService implements OnStart {
 	}
 
 	public getEquippedWeapon(player: Player): Readonly<Weapon> | undefined {
-		const weapon = this.dataService.getEquippedItem(player, 'weapon')?.id;
+		const weapon = this.inventoryDataService.getEquippedItem(player, 'weapon')?.id;
 		if (weapon) {
 			return getWeaponById(weapon);
 		}
@@ -77,7 +77,7 @@ export class ItemService implements OnStart {
 	}
 
 	public getEquippedArmor(player: Player): Readonly<Armor> | undefined {
-		const armorId = this.dataService.getEquippedItem(player, 'armor')?.id;
+		const armorId = this.inventoryDataService.getEquippedItem(player, 'armor')?.id;
 		if (armorId) {
 			return getArmorById(armorId);
 		}

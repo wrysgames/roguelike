@@ -1,10 +1,10 @@
 import Signal from '@rbxts/signal';
-import { PlayerSaveData, StoredItemData } from 'server/features/datastore/types/schemas/inventory';
+import { InventoryData, StoredItemData } from 'server/features/datastore/types/schemas/inventory';
 import { ItemType } from 'shared/features/inventory/types';
 
 export class PlayerSignals {
 	// Player events
-	public static onPlayerDataLoaded: Signal<(player: Player, data: PlayerSaveData) => void> = new Signal();
+	public static onPlayerInventoryDataLoaded: Signal<(player: Player, data: InventoryData) => void> = new Signal();
 	public static onPlayerDashed: Signal<(player: Player) => void> = new Signal();
 
 	// Item events

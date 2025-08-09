@@ -5,15 +5,15 @@ import { HttpService, Players } from '@rbxts/services';
 import { PlayerService } from 'server/features/player/services/player_service';
 import { PlayerSignals } from 'server/signals/player_signal';
 import { ItemType } from 'shared/features/inventory/types';
-import { profileTemplate } from '../constants/player_data_template';
-import { PlayerSaveData, StoredItemData } from '../types/schemas/inventory';
+import { inventoryProfileTemplate } from '../constants/templates/inventory';
+import { InventoryData, StoredItemData } from '../types/schemas/inventory';
 import { normalizeStoredItemData } from '../utils/normalize';
 
-const PLAYER_STORE = ProfileStore.New<PlayerSaveData>('test', profileTemplate);
+const INVENTORY_DATA_STORE = ProfileStore.New<InventoryData>('INVENTORY', inventoryProfileTemplate);
 
 @Service()
-export class DataService implements OnStart {
-	private profiles: Map<Player, Profile<PlayerSaveData>> = new Map();
+export class InventoryDataService implements OnStart {
+	private profiles: Map<Player, Profile<InventoryData>> = new Map();
 
 	constructor(private playerService: PlayerService) {}
 
@@ -30,7 +30,7 @@ export class DataService implements OnStart {
 		// Only load 1 profile
 		if (this.profiles.has(player)) return;
 
-		const profile = PLAYER_STORE.StartSessionAsync(tostring(player.UserId), {
+		const profile = INVENTORY_DATA_STORE.StartSessionAsync(tostring(player.UserId), {
 			Cancel: () => player.Parent !== Players,
 		});
 
@@ -50,7 +50,7 @@ export class DataService implements OnStart {
 			this.normalizePlayerData(profile.Data);
 
 			// Fire data loaded events
-			PlayerSignals.onPlayerDataLoaded.Fire(player, profile.Data);
+			PlayerSignals.onPlayerInventoryDataLoaded.Fire(player, profile.Data);
 		} else {
 			profile.EndSession();
 		}
@@ -120,7 +120,7 @@ export class DataService implements OnStart {
 		return undefined;
 	}
 
-	private normalizePlayerData(data: PlayerSaveData): void {
+	private normalizePlayerData(data: InventoryData): void {
 		ObjectUtils.keys(data.equipped).forEach((key) => {
 			const item = data.equipped[key];
 			if (!item) return;

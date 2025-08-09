@@ -1,7 +1,7 @@
-import { PlayerSaveData } from '../types/schemas/inventory';
-import { normalizeStoredItemData } from '../utils/normalize';
+import { InventoryData } from '../../types/schemas/inventory';
+import { normalizeStoredItemData } from '../../utils/normalize';
 
-export const profileTemplate: PlayerSaveData = {
+export const inventoryProfileTemplate: InventoryData = {
 	equipped: {
 		weapon: normalizeStoredItemData({ instanceId: '1', type: 'weapon', id: 'weapon:wooden_sword' }),
 	},
